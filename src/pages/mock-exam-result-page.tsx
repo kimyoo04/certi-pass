@@ -1,44 +1,43 @@
-import { useMemo, useState } from "react";
-import { useParams, useNavigate } from "react-router-dom";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { Progress } from "@/components/ui/progress";
-import { MobileLayout } from "@/components/mobile-layout";
-import { useMockExamStore } from "@/stores/use-mock-exam-store";
-import { PASSING_SCORE_PERCENT } from "@/constants";
+import { useMemo, useState } from 'react'
+import { useNavigate, useParams } from 'react-router-dom'
+
+import { MobileLayout } from '@/components/mobile-layout'
+import { Badge } from '@/components/ui/badge'
+import { Button } from '@/components/ui/button'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Progress } from '@/components/ui/progress'
+import { useMockExamStore } from '@/stores/use-mock-exam-store'
+import { PASSING_SCORE_PERCENT } from '@/constants'
 
 export function MockExamResultPage() {
-  const { examId } = useParams<{ examId: string; subjectId: string }>();
-  const navigate = useNavigate();
-  const { questions, answers, examHistory } = useMockExamStore();
-  const resetSession = useMockExamStore((s) => s.resetSession);
-  const [expandedId, setExpandedId] = useState<string | null>(null);
+  const { examId } = useParams<{ examId: string; subjectId: string }>()
+  const navigate = useNavigate()
+  const { questions, answers, examHistory } = useMockExamStore()
+  const resetSession = useMockExamStore((s) => s.resetSession)
+  const [expandedId, setExpandedId] = useState<string | null>(null)
 
   // Use the most recent result from history
-  const latestResult = examHistory[0];
+  const latestResult = examHistory[0]
 
   const results = useMemo(() => {
     return questions.map((q) => ({
       question: q,
       selectedIndex: answers[q.id] ?? -1,
       isCorrect: answers[q.id] === q.correctIndex,
-    }));
-  }, [questions, answers]);
+    }))
+  }, [questions, answers])
 
-  const correctCount = results.filter((r) => r.isCorrect).length;
-  const totalQuestions = results.length;
-  const percentage = totalQuestions > 0 ? Math.round((correctCount / totalQuestions) * 100) : 0;
-  const timeSpent = latestResult
-    ? latestResult.timeSpentSeconds
-    : 0;
-  const minutes = Math.floor(timeSpent / 60);
-  const seconds = timeSpent % 60;
+  const correctCount = results.filter((r) => r.isCorrect).length
+  const totalQuestions = results.length
+  const percentage = totalQuestions > 0 ? Math.round((correctCount / totalQuestions) * 100) : 0
+  const timeSpent = latestResult ? latestResult.timeSpentSeconds : 0
+  const minutes = Math.floor(timeSpent / 60)
+  const seconds = timeSpent % 60
 
   const handleBackToSubject = () => {
-    resetSession();
-    navigate(`/exam/${examId}`, { replace: true });
-  };
+    resetSession()
+    navigate(`/exam/${examId}`, { replace: true })
+  }
 
   if (totalQuestions === 0) {
     return (
@@ -50,29 +49,32 @@ export function MockExamResultPage() {
           </Button>
         </div>
       </MobileLayout>
-    );
+    )
   }
 
-  const passed = percentage >= PASSING_SCORE_PERCENT;
+  const passed = percentage >= PASSING_SCORE_PERCENT
 
   return (
     <MobileLayout title="모의고사 결과" showBack>
       <div className="space-y-4">
         {/* Score Card */}
-        <Card className={passed ? "border-green-200 dark:border-green-900" : "border-red-200 dark:border-red-900"}>
+        <Card
+          className={
+            passed ? 'border-green-200 dark:border-green-900' : 'border-red-200 dark:border-red-900'
+          }
+        >
           <CardContent className="p-5 text-center">
-            <p className="text-5xl font-bold mb-2">{percentage}%</p>
-            <p className="text-lg font-medium mb-1">
+            <p className="mb-2 text-5xl font-bold">{percentage}%</p>
+            <p className="mb-1 text-lg font-medium">
               {correctCount} / {totalQuestions} 정답
             </p>
-            <div className="flex items-center justify-center gap-3 text-sm text-muted-foreground">
-              <span>소요 시간: {minutes}분 {seconds}초</span>
+            <div className="text-muted-foreground flex items-center justify-center gap-3 text-sm">
+              <span>
+                소요 시간: {minutes}분 {seconds}초
+              </span>
             </div>
-            <Badge
-              variant={passed ? "default" : "destructive"}
-              className="mt-3"
-            >
-              {passed ? "합격 기준 통과" : `합격 기준 미달 (${PASSING_SCORE_PERCENT}%)`}
+            <Badge variant={passed ? 'default' : 'destructive'} className="mt-3">
+              {passed ? '합격 기준 통과' : `합격 기준 미달 (${PASSING_SCORE_PERCENT}%)`}
             </Badge>
             <Progress value={percentage} className="mt-3 h-2" />
           </CardContent>
@@ -80,63 +82,67 @@ export function MockExamResultPage() {
 
         {/* Question Review */}
         <div>
-          <h2 className="mb-2 text-sm font-medium text-muted-foreground px-1">
-            문제 리뷰
-          </h2>
+          <h2 className="text-muted-foreground mb-2 px-1 text-sm font-medium">문제 리뷰</h2>
           <div className="space-y-2">
             {results.map((r, idx) => {
-              const isExpanded = expandedId === r.question.id;
+              const isExpanded = expandedId === r.question.id
               return (
                 <Card
                   key={r.question.id}
                   className={`cursor-pointer transition-colors ${
-                    r.isCorrect ? "" : "border-red-100 dark:border-red-950"
+                    r.isCorrect ? '' : 'border-red-100 dark:border-red-950'
                   }`}
                   onClick={() => setExpandedId(isExpanded ? null : r.question.id)}
                 >
                   <CardHeader className="p-3">
                     <div className="flex items-center gap-2">
-                      <span className={`text-sm font-medium ${r.isCorrect ? "text-green-600 dark:text-green-400" : "text-red-600 dark:text-red-400"}`}>
-                        {r.isCorrect ? "O" : "X"}
+                      <span
+                        className={`text-sm font-medium ${r.isCorrect ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}`}
+                      >
+                        {r.isCorrect ? 'O' : 'X'}
                       </span>
-                      <CardTitle className="text-sm font-normal flex-1 line-clamp-1">
+                      <CardTitle className="line-clamp-1 flex-1 text-sm font-normal">
                         Q{idx + 1}. {r.question.content}
                       </CardTitle>
                     </div>
                   </CardHeader>
                   {isExpanded && (
-                    <CardContent className="px-3 pb-3 pt-0">
+                    <CardContent className="px-3 pt-0 pb-3">
                       <div className="space-y-1.5 text-sm">
                         {r.question.options.map((opt, optIdx) => {
-                          let style = "";
+                          let style = ''
                           if (optIdx === r.question.correctIndex) {
-                            style = "text-green-700 dark:text-green-400 font-medium";
+                            style = 'text-green-700 dark:text-green-400 font-medium'
                           } else if (optIdx === r.selectedIndex && !r.isCorrect) {
-                            style = "text-red-600 dark:text-red-400 line-through";
+                            style = 'text-red-600 dark:text-red-400 line-through'
                           } else {
-                            style = "text-muted-foreground";
+                            style = 'text-muted-foreground'
                           }
                           return (
                             <p key={optIdx} className={style}>
                               {optIdx + 1}. {opt}
-                              {optIdx === r.question.correctIndex && " ✓"}
-                              {optIdx === r.selectedIndex && optIdx !== r.question.correctIndex && " ←"}
+                              {optIdx === r.question.correctIndex && ' ✓'}
+                              {optIdx === r.selectedIndex &&
+                                optIdx !== r.question.correctIndex &&
+                                ' ←'}
                             </p>
-                          );
+                          )
                         })}
                         {r.selectedIndex === -1 && (
-                          <p className="text-amber-600 dark:text-amber-400 text-xs">미답변</p>
+                          <p className="text-xs text-amber-600 dark:text-amber-400">미답변</p>
                         )}
                         {r.question.explanation && (
-                          <div className="mt-2 rounded bg-muted p-2">
-                            <p className="text-xs text-muted-foreground">{r.question.explanation}</p>
+                          <div className="bg-muted mt-2 rounded p-2">
+                            <p className="text-muted-foreground text-xs">
+                              {r.question.explanation}
+                            </p>
                           </div>
                         )}
                       </div>
                     </CardContent>
                   )}
                 </Card>
-              );
+              )
             })}
           </div>
         </div>
@@ -149,5 +155,5 @@ export function MockExamResultPage() {
         </div>
       </div>
     </MobileLayout>
-  );
+  )
 }

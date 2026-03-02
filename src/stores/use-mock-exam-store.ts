@@ -1,36 +1,43 @@
-import { create } from "zustand";
-import { persist } from "zustand/middleware";
-import type { MultipleChoiceQuestion, MockExamResult } from "@/types";
-import { fisherYatesShuffle } from "@/utils/shuffle";
-import { STORAGE_KEYS, getExamConfig, EXAM_CONFIG, MAX_EXAM_HISTORY, QUESTION_TYPES } from "@/constants";
+import type { MockExamResult, MultipleChoiceQuestion } from '@/types'
+import { create } from 'zustand'
+import { persist } from 'zustand/middleware'
+
+import { fisherYatesShuffle } from '@/utils/shuffle'
+import {
+  EXAM_CONFIG,
+  getExamConfig,
+  MAX_EXAM_HISTORY,
+  QUESTION_TYPES,
+  STORAGE_KEYS,
+} from '@/constants'
 
 interface MockExamState {
   // Session state (not persisted)
-  questions: MultipleChoiceQuestion[];
-  answers: Record<string, number>; // questionId → selectedIndex
-  currentIndex: number;
-  remainingSeconds: number;
-  isStarted: boolean;
-  isFinished: boolean;
-  examId: string;
-  subjectId: string;
-  subjectName: string;
+  questions: MultipleChoiceQuestion[]
+  answers: Record<string, number> // questionId → selectedIndex
+  currentIndex: number
+  remainingSeconds: number
+  isStarted: boolean
+  isFinished: boolean
+  examId: string
+  subjectId: string
+  subjectName: string
 
   // Persisted
-  examHistory: MockExamResult[];
+  examHistory: MockExamResult[]
 
   // Actions
   startExam: (
     examId: string,
     subjectId: string,
     subjectName: string,
-    allQuestions: MultipleChoiceQuestion[]
-  ) => void;
-  selectAnswer: (questionId: string, selectedIndex: number) => void;
-  goToQuestion: (index: number) => void;
-  tick: () => void;
-  finishExam: () => MockExamResult;
-  resetSession: () => void;
+    allQuestions: MultipleChoiceQuestion[],
+  ) => void
+  selectAnswer: (questionId: string, selectedIndex: number) => void
+  goToQuestion: (index: number) => void
+  tick: () => void
+  finishExam: () => MockExamResult
+  resetSession: () => void
 }
 
 export const useMockExamStore = create<MockExamState>()(
@@ -42,16 +49,16 @@ export const useMockExamStore = create<MockExamState>()(
       remainingSeconds: EXAM_CONFIG.NORMAL.durationSeconds,
       isStarted: false,
       isFinished: false,
-      examId: "",
-      subjectId: "",
-      subjectName: "",
+      examId: '',
+      subjectId: '',
+      subjectName: '',
       examHistory: [],
 
       startExam: (examId, subjectId, subjectName, allQuestions) => {
-        const config = getExamConfig(subjectId);
-        const mcQuestions = allQuestions.filter((q) => q.type === QUESTION_TYPES.MULTIPLE_CHOICE);
-        const shuffled = fisherYatesShuffle(mcQuestions, `${examId}-${subjectId}-${Date.now()}`);
-        const selected = shuffled.slice(0, config.questionsPerExam);
+        const config = getExamConfig(subjectId)
+        const mcQuestions = allQuestions.filter((q) => q.type === QUESTION_TYPES.MULTIPLE_CHOICE)
+        const shuffled = fisherYatesShuffle(mcQuestions, `${examId}-${subjectId}-${Date.now()}`)
+        const selected = shuffled.slice(0, config.questionsPerExam)
 
         set({
           questions: selected,
@@ -63,7 +70,7 @@ export const useMockExamStore = create<MockExamState>()(
           examId,
           subjectId,
           subjectName,
-        });
+        })
       },
 
       selectAnswer: (questionId, selectedIndex) =>
@@ -75,16 +82,16 @@ export const useMockExamStore = create<MockExamState>()(
 
       tick: () =>
         set((state) => {
-          if (state.remainingSeconds <= 0) return state;
-          return { remainingSeconds: state.remainingSeconds - 1 };
+          if (state.remainingSeconds <= 0) return state
+          return { remainingSeconds: state.remainingSeconds - 1 }
         }),
 
       finishExam: () => {
-        const state = get();
-        const config = getExamConfig(state.subjectId);
+        const state = get()
+        const config = getExamConfig(state.subjectId)
         const correctCount = state.questions.filter(
-          (q) => state.answers[q.id] === q.correctIndex
-        ).length;
+          (q) => state.answers[q.id] === q.correctIndex,
+        ).length
 
         const result: MockExamResult = {
           id: `mock-${Date.now()}`,
@@ -97,15 +104,15 @@ export const useMockExamStore = create<MockExamState>()(
           timestamp: Date.now(),
           answers: { ...state.answers },
           questionIds: state.questions.map((q) => q.id),
-        };
+        }
 
         set((s) => ({
           isFinished: true,
           isStarted: false,
           examHistory: [result, ...s.examHistory].slice(0, MAX_EXAM_HISTORY),
-        }));
+        }))
 
-        return result;
+        return result
       },
 
       resetSession: () =>
@@ -116,14 +123,14 @@ export const useMockExamStore = create<MockExamState>()(
           remainingSeconds: EXAM_CONFIG.NORMAL.durationSeconds,
           isStarted: false,
           isFinished: false,
-          examId: "",
-          subjectId: "",
-          subjectName: "",
+          examId: '',
+          subjectId: '',
+          subjectName: '',
         }),
     }),
     {
       name: STORAGE_KEYS.MOCK_EXAM,
       partialize: (state) => ({ examHistory: state.examHistory }),
-    }
-  )
-);
+    },
+  ),
+)

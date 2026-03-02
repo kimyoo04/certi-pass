@@ -1,0 +1,31 @@
+!.*
+/node_modules
+/dist
+/build
+/.nx
+/.github
+
+*.log
+.cache
+
+# 시스템 파일
+.DS_Store
+Thumbs.db
+
+# 패키지 매니저 락 파일
+.pnpm-store
+package-lock.json
+pnpm-lock.yaml
+
+# 특정 파일 형식 무시
+*.min.js
+*.min.css
+
+# 템플릿 파일
+*.hbs
+
+# nextjs
+.next
+
+# vite
+.vite

@@ -1,13 +1,14 @@
-import { create } from "zustand";
-import { persist } from "zustand/middleware";
-import { STORAGE_KEYS } from "@/constants";
+import { create } from 'zustand'
+import { persist } from 'zustand/middleware'
+
+import { STORAGE_KEYS } from '@/constants'
 
 interface BookmarkState {
-  bookmarks: Record<string, boolean>;
-  toggleBookmark: (questionId: string) => void;
-  isBookmarked: (questionId: string) => boolean;
-  getBookmarkedIds: () => string[];
-  clearBookmarks: () => void;
+  bookmarks: Record<string, boolean>
+  toggleBookmark: (questionId: string) => void
+  isBookmarked: (questionId: string) => boolean
+  getBookmarkedIds: () => string[]
+  clearBookmarks: () => void
 }
 
 export const useBookmarkStore = create<BookmarkState>()(
@@ -17,13 +18,13 @@ export const useBookmarkStore = create<BookmarkState>()(
 
       toggleBookmark: (questionId) =>
         set((state) => {
-          const next = { ...state.bookmarks };
+          const next = { ...state.bookmarks }
           if (next[questionId]) {
-            delete next[questionId];
+            delete next[questionId]
           } else {
-            next[questionId] = true;
+            next[questionId] = true
           }
-          return { bookmarks: next };
+          return { bookmarks: next }
         }),
 
       isBookmarked: (questionId) => !!get().bookmarks[questionId],
@@ -35,6 +36,6 @@ export const useBookmarkStore = create<BookmarkState>()(
     {
       name: STORAGE_KEYS.BOOKMARKS,
       partialize: (state) => ({ bookmarks: state.bookmarks }),
-    }
-  )
-);
+    },
+  ),
+)

@@ -1,147 +1,152 @@
-import { useEffect, useState, useMemo, useCallback } from "react";
-import { useParams } from "react-router-dom";
-import { Tag, X } from "lucide-react";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
+import { useCallback, useEffect, useMemo, useState } from 'react'
+import { Tag, X } from 'lucide-react'
+import { useParams } from 'react-router-dom'
+
+import { MobileLayout } from '@/components/mobile-layout'
+import { TreeNodePicker } from '@/components/tree-node-picker'
+import { Badge } from '@/components/ui/badge'
+import { Button } from '@/components/ui/button'
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@/components/ui/select";
-import { MobileLayout } from "@/components/mobile-layout";
-import { TreeNodePicker } from "@/components/tree-node-picker";
-import { useClassifyStore } from "@/stores/use-classify-store";
-import { useTreeStore } from "@/stores/use-tree-store";
-import { flattenTree } from "@/utils/tree-utils";
-import { allSubjects } from "@/data/exam-tree";
-import type { TreeNode } from "@/types/tree";
-import { DATA_PATHS } from "@/constants";
+} from '@/components/ui/select'
+import { useClassifyStore } from '@/stores/use-classify-store'
+import { useTreeStore } from '@/stores/use-tree-store'
+import { flattenTree } from '@/utils/tree-utils'
+import { allSubjects } from '@/data/exam-tree'
+import type { TreeNode } from '@/types/tree'
+import { DATA_PATHS } from '@/constants'
 
 interface QuizQuestion {
-  id: string;
-  type: string;
-  year: number;
-  content: string;
-  options?: { text: string }[];
-  correctIndex?: number;
+  id: string
+  type: string
+  year: number
+  content: string
+  options?: { text: string }[]
+  correctIndex?: number
 }
 
 function getNodeLabel(flatNodes: TreeNode[], nodeId: string): string {
-  const node = flatNodes.find((n) => n.id === nodeId);
-  return node?.label ?? nodeId;
+  const node = flatNodes.find((n) => n.id === nodeId)
+  return node?.label ?? nodeId
 }
 
 export function ClassifyPage() {
-  const { examId, subjectId } = useParams<{ examId: string; subjectId: string }>();
-  const subject = allSubjects.find((s) => s.id === subjectId);
+  const { examId, subjectId } = useParams<{ examId: string; subjectId: string }>()
+  const subject = allSubjects.find((s) => s.id === subjectId)
 
-  const [questions, setQuestions] = useState<QuizQuestion[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [filter, setFilter] = useState<string>("all");
-  const [pickerOpen, setPickerOpen] = useState(false);
-  const [activeQuestionId, setActiveQuestionId] = useState<string | null>(null);
+  const [questions, setQuestions] = useState<QuizQuestion[]>([])
+  const [loading, setLoading] = useState(true)
+  const [filter, setFilter] = useState<string>('all')
+  const [pickerOpen, setPickerOpen] = useState(false)
+  const [activeQuestionId, setActiveQuestionId] = useState<string | null>(null)
 
   const { overrides, defaults, loadDefaults, getNodeId, setClassification, removeOverride } =
-    useClassifyStore();
-  const tree = useTreeStore((s) => s.getTree(subjectId!));
-  const flatNodes = useMemo(() => flattenTree(tree), [tree]);
+    useClassifyStore()
+  const tree = useTreeStore((s) => s.getTree(subjectId!))
+  const flatNodes = useMemo(() => flattenTree(tree), [tree])
 
   // Load questions
   useEffect(() => {
-    if (!examId || !subjectId) return;
-    let cancelled = false;
+    if (!examId || !subjectId) return
+    let cancelled = false
     fetch(DATA_PATHS.ALL_QUIZ(examId!, subjectId!))
       .then((res) => res.json())
       .then((data: QuizQuestion[]) => {
         if (!cancelled) {
-          setQuestions(data);
-          setLoading(false);
+          setQuestions(data)
+          setLoading(false)
         }
       })
-      .catch(() => { if (!cancelled) setLoading(false); });
-    return () => { cancelled = true; };
-  }, [examId, subjectId]);
+      .catch(() => {
+        if (!cancelled) setLoading(false)
+      })
+    return () => {
+      cancelled = true
+    }
+  }, [examId, subjectId])
 
   // Load default classifications
   useEffect(() => {
-    if (!examId || !subjectId) return;
+    if (!examId || !subjectId) return
     fetch(DATA_PATHS.QUESTION_TREE_MAP(examId!, subjectId!))
       .then((res) => res.json())
       .then((data: { classified: Record<string, string> }) => {
-        if (data.classified) loadDefaults(data.classified);
+        if (data.classified) loadDefaults(data.classified)
       })
-      .catch(() => {});
-  }, [examId, subjectId, loadDefaults]);
+      .catch(() => {})
+  }, [examId, subjectId, loadDefaults])
 
   // Stats
   const stats = useMemo(() => {
-    const total = questions.length;
-    let classified = 0;
+    const total = questions.length
+    let classified = 0
     for (const q of questions) {
-      if (overrides[q.id] || defaults[q.id]) classified++;
+      if (overrides[q.id] || defaults[q.id]) classified++
     }
-    return { total, classified, unclassified: total - classified };
-  }, [questions, overrides, defaults]);
+    return { total, classified, unclassified: total - classified }
+  }, [questions, overrides, defaults])
 
   // Years for filter
   const years = useMemo(() => {
-    const yrs = new Set(questions.map((q) => q.year));
-    return [...yrs].sort((a, b) => b - a);
-  }, [questions]);
+    const yrs = new Set(questions.map((q) => q.year))
+    return [...yrs].sort((a, b) => b - a)
+  }, [questions])
 
   // Filtered questions
   const filteredQuestions = useMemo(() => {
-    let result = questions;
-    if (filter === "unclassified") {
-      result = result.filter((q) => !getNodeId(q.id));
-    } else if (filter.startsWith("y")) {
-      const year = parseInt(filter.slice(1));
-      result = result.filter((q) => q.year === year);
+    let result = questions
+    if (filter === 'unclassified') {
+      result = result.filter((q) => !getNodeId(q.id))
+    } else if (filter.startsWith('y')) {
+      const year = parseInt(filter.slice(1))
+      result = result.filter((q) => q.year === year)
     }
-    return result;
-  }, [questions, filter, getNodeId]);
+    return result
+  }, [questions, filter, getNodeId])
 
   const openPicker = useCallback((questionId: string) => {
-    setActiveQuestionId(questionId);
-    setPickerOpen(true);
-  }, []);
+    setActiveQuestionId(questionId)
+    setPickerOpen(true)
+  }, [])
 
   const handleNodeSelect = useCallback(
     (nodeId: string) => {
       if (activeQuestionId) {
-        setClassification(activeQuestionId, nodeId);
-        setPickerOpen(false);
-        setActiveQuestionId(null);
+        setClassification(activeQuestionId, nodeId)
+        setPickerOpen(false)
+        setActiveQuestionId(null)
       }
     },
-    [activeQuestionId, setClassification]
-  );
+    [activeQuestionId, setClassification],
+  )
 
   if (!subject) {
     return (
       <MobileLayout title="오류" showBack>
-        <p className="text-center py-10 text-muted-foreground">과목을 찾을 수 없습니다.</p>
+        <p className="text-muted-foreground py-10 text-center">과목을 찾을 수 없습니다.</p>
       </MobileLayout>
-    );
+    )
   }
 
   if (loading) {
     return (
       <MobileLayout title={`${subject.name} 분류`} showBack>
         <div className="flex items-center justify-center py-20">
-          <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" />
+          <div className="border-primary h-8 w-8 animate-spin rounded-full border-4 border-t-transparent" />
         </div>
       </MobileLayout>
-    );
+    )
   }
 
   return (
     <MobileLayout title={`${subject.name} 분류`} showBack>
       <div className="space-y-3">
         {/* Stats */}
-        <div className="flex items-center gap-2 flex-wrap">
+        <div className="flex flex-wrap items-center gap-2">
           <Badge variant="outline" className="text-xs">
             전체 {stats.total}
           </Badge>
@@ -174,38 +179,32 @@ export function ClassifyPage() {
         {/* Question list */}
         <div className="space-y-2">
           {filteredQuestions.length === 0 ? (
-            <p className="text-sm text-muted-foreground text-center py-6">
+            <p className="text-muted-foreground py-6 text-center text-sm">
               표시할 문제가 없습니다.
             </p>
           ) : (
             filteredQuestions.map((q) => {
-              const nodeId = getNodeId(q.id);
-              const isOverridden = !!overrides[q.id];
+              const nodeId = getNodeId(q.id)
+              const isOverridden = !!overrides[q.id]
 
               return (
-                <div
-                  key={q.id}
-                  className="rounded-lg border p-3 space-y-1.5"
-                >
+                <div key={q.id} className="space-y-1.5 rounded-lg border p-3">
                   {/* Header */}
                   <div className="flex items-center gap-1.5">
-                    <Badge variant="outline" className="text-[10px] shrink-0">
+                    <Badge variant="outline" className="shrink-0 text-[10px]">
                       {q.year}
                     </Badge>
-                    <span className="text-xs text-muted-foreground">{q.id}</span>
+                    <span className="text-muted-foreground text-xs">{q.id}</span>
                   </div>
 
                   {/* Content */}
-                  <p className="text-sm line-clamp-2">{q.content}</p>
+                  <p className="line-clamp-2 text-sm">{q.content}</p>
 
                   {/* Classification */}
-                  <div className="flex items-center gap-1.5 flex-wrap">
+                  <div className="flex flex-wrap items-center gap-1.5">
                     {nodeId ? (
                       <>
-                        <Badge
-                          variant="secondary"
-                          className="text-xs max-w-[200px] truncate"
-                        >
+                        <Badge variant="secondary" className="max-w-[200px] truncate text-xs">
                           {getNodeLabel(flatNodes, nodeId)}
                         </Badge>
                         {isOverridden && (
@@ -221,12 +220,12 @@ export function ClassifyPage() {
                         )}
                       </>
                     ) : (
-                      <span className="text-xs text-muted-foreground">미분류</span>
+                      <span className="text-muted-foreground text-xs">미분류</span>
                     )}
                     <Button
                       variant="outline"
                       size="sm"
-                      className="h-6 text-xs gap-1 ml-auto"
+                      className="ml-auto h-6 gap-1 text-xs"
                       onClick={() => openPicker(q.id)}
                     >
                       <Tag className="h-3 w-3" />
@@ -234,7 +233,7 @@ export function ClassifyPage() {
                     </Button>
                   </div>
                 </div>
-              );
+              )
             })
           )}
         </div>
@@ -249,5 +248,5 @@ export function ClassifyPage() {
         onSelect={handleNodeSelect}
       />
     </MobileLayout>
-  );
+  )
 }

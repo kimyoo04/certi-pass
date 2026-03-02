@@ -1,9 +1,10 @@
-import { useState, useMemo, useCallback, useEffect } from "react";
-import { useParams } from "react-router-dom";
-import { Search, ChevronsUpDown, Pencil, RotateCcw } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Badge } from "@/components/ui/badge";
+import { useCallback, useEffect, useMemo, useState } from 'react'
+import { ChevronsUpDown, Pencil, RotateCcw, Search } from 'lucide-react'
+import { useParams } from 'react-router-dom'
+
+import { MobileLayout } from '@/components/mobile-layout'
+import { TreeNodeForm } from '@/components/tree-node-form'
+import { TreeNodeItem } from '@/components/tree-node-item'
 import {
   AlertDialog,
   AlertDialogAction,
@@ -13,121 +14,122 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
-import { MobileLayout } from "@/components/mobile-layout";
-import { TreeNodeItem } from "@/components/tree-node-item";
-import { TreeNodeForm } from "@/components/tree-node-form";
-import { useTreeStore } from "@/stores/use-tree-store";
-import { useClassifyStore } from "@/stores/use-classify-store";
-import { allSubjects } from "@/data/exam-tree";
-import { filterTree, countNodes, generateNodeId, getChildLevel } from "@/utils/tree-utils";
-import type { TreeNode } from "@/types/tree";
+} from '@/components/ui/alert-dialog'
+import { Badge } from '@/components/ui/badge'
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import { useClassifyStore } from '@/stores/use-classify-store'
+import { useTreeStore } from '@/stores/use-tree-store'
+import { countNodes, filterTree, generateNodeId, getChildLevel } from '@/utils/tree-utils'
+import { allSubjects } from '@/data/exam-tree'
+import type { TreeNode } from '@/types/tree'
 
 export function TreeViewPage() {
-  const { subjectId } = useParams<{ subjectId: string }>();
-  const subject = allSubjects.find((s) => s.id === subjectId);
+  const { subjectId } = useParams<{ subjectId: string }>()
+  const subject = allSubjects.find((s) => s.id === subjectId)
 
-  const { getTree, addNode, updateNode, deleteNode, resetSubject, customTrees } = useTreeStore();
-  const tree = getTree(subjectId!);
-  const isCustomized = !!customTrees[subjectId!];
+  const { getTree, addNode, updateNode, deleteNode, resetSubject, customTrees } = useTreeStore()
+  const tree = getTree(subjectId!)
+  const isCustomized = !!customTrees[subjectId!]
 
-  const { overrides: classifyOverrides, defaults: classifyDefaults, loadDefaults } = useClassifyStore();
+  const {
+    overrides: classifyOverrides,
+    defaults: classifyDefaults,
+    loadDefaults,
+  } = useClassifyStore()
 
   // Load classification defaults from JSON
   useEffect(() => {
-    if (!subjectId) return;
+    if (!subjectId) return
     fetch(`${import.meta.env.BASE_URL}data/realtor/${subjectId}/question_tree_map.json`)
       .then((res) => res.json())
       .then((data: { classified?: Record<string, string> }) => {
-        if (data.classified) loadDefaults(data.classified);
+        if (data.classified) loadDefaults(data.classified)
       })
-      .catch(() => {});
-  }, [subjectId, loadDefaults]);
+      .catch(() => {})
+  }, [subjectId, loadDefaults])
 
   // Compute per-node question counts from classification data
   const questionCounts = useMemo(() => {
-    const counts: Record<string, number> = {};
-    const allMappings = { ...classifyDefaults, ...classifyOverrides };
+    const counts: Record<string, number> = {}
+    const allMappings = { ...classifyDefaults, ...classifyOverrides }
     for (const [qId, nodeId] of Object.entries(allMappings)) {
       // Only count questions belonging to this subject
-      if (qId.startsWith(subjectId + "_")) {
-        counts[nodeId] = (counts[nodeId] || 0) + 1;
+      if (qId.startsWith(subjectId + '_')) {
+        counts[nodeId] = (counts[nodeId] || 0) + 1
       }
     }
-    return counts;
-  }, [classifyDefaults, classifyOverrides, subjectId]);
+    return counts
+  }, [classifyDefaults, classifyOverrides, subjectId])
 
-  const hasQuestionCounts = Object.keys(questionCounts).length > 0;
+  const hasQuestionCounts = Object.keys(questionCounts).length > 0
 
-  const [search, setSearch] = useState("");
-  const [expandAll, setExpandAll] = useState(false);
-  const [editMode, setEditMode] = useState(false);
+  const [search, setSearch] = useState('')
+  const [expandAll, setExpandAll] = useState(false)
+  const [editMode, setEditMode] = useState(false)
 
   // CRUD state
-  const [formOpen, setFormOpen] = useState(false);
-  const [editingNode, setEditingNode] = useState<TreeNode | null>(null);
-  const [addParentId, setAddParentId] = useState<string | null>(null);
-  const [addParentLevel, setAddParentLevel] = useState<TreeNode["level"]>("major");
-  const [deleteTarget, setDeleteTarget] = useState<TreeNode | null>(null);
-  const [resetDialogOpen, setResetDialogOpen] = useState(false);
+  const [formOpen, setFormOpen] = useState(false)
+  const [editingNode, setEditingNode] = useState<TreeNode | null>(null)
+  const [addParentId, setAddParentId] = useState<string | null>(null)
+  const [addParentLevel, setAddParentLevel] = useState<TreeNode['level']>('major')
+  const [deleteTarget, setDeleteTarget] = useState<TreeNode | null>(null)
+  const [resetDialogOpen, setResetDialogOpen] = useState(false)
 
-  const filteredTree = useMemo(
-    () => (search ? filterTree(tree, search) : tree),
-    [tree, search]
-  );
+  const filteredTree = useMemo(() => (search ? filterTree(tree, search) : tree), [tree, search])
 
-  const nodeCount = useMemo(() => countNodes(tree), [tree]);
+  const nodeCount = useMemo(() => countNodes(tree), [tree])
 
   const handleEdit = useCallback((node: TreeNode) => {
-    setEditingNode(node);
-    setAddParentId(null);
-    setFormOpen(true);
-  }, []);
+    setEditingNode(node)
+    setAddParentId(null)
+    setFormOpen(true)
+  }, [])
 
   const handleAddChild = useCallback((parentNode: TreeNode) => {
-    setEditingNode(null);
-    setAddParentId(parentNode.id);
-    setAddParentLevel(getChildLevel(parentNode.level));
-    setFormOpen(true);
-  }, []);
+    setEditingNode(null)
+    setAddParentId(parentNode.id)
+    setAddParentLevel(getChildLevel(parentNode.level))
+    setFormOpen(true)
+  }, [])
 
   const handleDelete = useCallback((node: TreeNode) => {
-    setDeleteTarget(node);
-  }, []);
+    setDeleteTarget(node)
+  }, [])
 
   const confirmDelete = useCallback(() => {
     if (deleteTarget && subjectId) {
-      deleteNode(subjectId, deleteTarget.id);
-      setDeleteTarget(null);
+      deleteNode(subjectId, deleteTarget.id)
+      setDeleteTarget(null)
     }
-  }, [deleteTarget, subjectId, deleteNode]);
+  }, [deleteTarget, subjectId, deleteNode])
 
   const handleFormSubmit = useCallback(
-    (data: Omit<TreeNode, "id" | "children">) => {
-      if (!subjectId) return;
+    (data: Omit<TreeNode, 'id' | 'children'>) => {
+      if (!subjectId) return
 
       if (editingNode) {
-        updateNode(subjectId, editingNode.id, data);
+        updateNode(subjectId, editingNode.id, data)
       } else if (addParentId) {
         const newNode: TreeNode = {
           id: generateNodeId(addParentId),
           ...data,
-        };
-        addNode(subjectId, addParentId, newNode);
+        }
+        addNode(subjectId, addParentId, newNode)
       }
-      setFormOpen(false);
-      setEditingNode(null);
-      setAddParentId(null);
+      setFormOpen(false)
+      setEditingNode(null)
+      setAddParentId(null)
     },
-    [subjectId, editingNode, addParentId, updateNode, addNode]
-  );
+    [subjectId, editingNode, addParentId, updateNode, addNode],
+  )
 
   if (!subject) {
     return (
       <MobileLayout title="오류" showBack>
-        <p className="text-center py-10 text-muted-foreground">과목을 찾을 수 없습니다.</p>
+        <p className="text-muted-foreground py-10 text-center">과목을 찾을 수 없습니다.</p>
       </MobileLayout>
-    );
+    )
   }
 
   return (
@@ -136,12 +138,12 @@ export function TreeViewPage() {
         {/* Toolbar */}
         <div className="flex items-center gap-2">
           <div className="relative flex-1">
-            <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+            <Search className="text-muted-foreground absolute top-2.5 left-2.5 h-4 w-4" />
             <Input
               placeholder="개념 검색..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              className="pl-8 h-9"
+              className="h-9 pl-8"
             />
           </div>
           <Button
@@ -149,34 +151,36 @@ export function TreeViewPage() {
             size="icon"
             className="h-9 w-9 shrink-0"
             onClick={() => setExpandAll((v) => !v)}
-            title={expandAll ? "모두 접기" : "모두 펼치기"}
+            title={expandAll ? '모두 접기' : '모두 펼치기'}
           >
             <ChevronsUpDown className="h-4 w-4" />
           </Button>
           <Button
-            variant={editMode ? "default" : "outline"}
+            variant={editMode ? 'default' : 'outline'}
             size="icon"
             className="h-9 w-9 shrink-0"
             onClick={() => setEditMode((v) => !v)}
-            title={editMode ? "편집 완료" : "편집 모드"}
+            title={editMode ? '편집 완료' : '편집 모드'}
           >
             <Pencil className="h-4 w-4" />
           </Button>
         </div>
 
         {/* Stats */}
-        <div className="flex items-center gap-2 text-xs text-muted-foreground">
+        <div className="text-muted-foreground flex items-center gap-2 text-xs">
           <Badge variant="outline" className="text-xs">
             {nodeCount}개 개념
           </Badge>
           {isCustomized && (
-            <Badge variant="secondary" className="text-xs">편집됨</Badge>
+            <Badge variant="secondary" className="text-xs">
+              편집됨
+            </Badge>
           )}
           {editMode && isCustomized && (
             <Button
               variant="ghost"
               size="sm"
-              className="h-6 text-xs gap-1"
+              className="h-6 gap-1 text-xs"
               onClick={() => setResetDialogOpen(true)}
             >
               <RotateCcw className="h-3 w-3" />
@@ -188,8 +192,8 @@ export function TreeViewPage() {
         {/* Tree */}
         <div className="rounded-lg border p-1">
           {filteredTree.length === 0 ? (
-            <p className="text-sm text-muted-foreground text-center py-6">
-              {search ? "검색 결과가 없습니다." : "트리 데이터가 없습니다."}
+            <p className="text-muted-foreground py-6 text-center text-sm">
+              {search ? '검색 결과가 없습니다.' : '트리 데이터가 없습니다.'}
             </p>
           ) : (
             filteredTree.map((node) => (
@@ -225,7 +229,7 @@ export function TreeViewPage() {
             <AlertDialogDescription>
               "{deleteTarget?.label}"을(를) 삭제하시겠습니까?
               {deleteTarget?.children && deleteTarget.children.length > 0 && (
-                <span className="block mt-1 text-destructive font-medium">
+                <span className="text-destructive mt-1 block font-medium">
                   하위 {deleteTarget.children.length}개 노드도 함께 삭제됩니다.
                 </span>
               )}
@@ -233,7 +237,10 @@ export function TreeViewPage() {
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>취소</AlertDialogCancel>
-            <AlertDialogAction onClick={confirmDelete} className="bg-destructive text-destructive-foreground">
+            <AlertDialogAction
+              onClick={confirmDelete}
+              className="bg-destructive text-destructive-foreground"
+            >
               삭제
             </AlertDialogAction>
           </AlertDialogFooter>
@@ -253,8 +260,8 @@ export function TreeViewPage() {
             <AlertDialogCancel>취소</AlertDialogCancel>
             <AlertDialogAction
               onClick={() => {
-                resetSubject(subjectId!);
-                setResetDialogOpen(false);
+                resetSubject(subjectId!)
+                setResetDialogOpen(false)
               }}
             >
               초기화
@@ -263,5 +270,5 @@ export function TreeViewPage() {
         </AlertDialogContent>
       </AlertDialog>
     </MobileLayout>
-  );
+  )
 }

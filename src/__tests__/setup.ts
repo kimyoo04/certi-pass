@@ -1,11 +1,13 @@
-import "@testing-library/jest-dom/vitest";
-import { afterEach, beforeEach } from "vitest";
-import { cleanup } from "@testing-library/react";
-import { useQuizStore } from "@/stores/use-quiz-store";
-import { useMockExamStore } from "@/stores/use-mock-exam-store";
+import '@testing-library/jest-dom/vitest'
+
+import { cleanup } from '@testing-library/react'
+import { afterEach, beforeEach } from 'vitest'
+
+import { useMockExamStore } from '@/stores/use-mock-exam-store'
+import { useQuizStore } from '@/stores/use-quiz-store'
 
 // Mock window.matchMedia for jsdom (used by useTheme)
-Object.defineProperty(window, "matchMedia", {
+Object.defineProperty(window, 'matchMedia', {
   writable: true,
   value: vi.fn().mockImplementation((query: string) => ({
     matches: false,
@@ -17,7 +19,7 @@ Object.defineProperty(window, "matchMedia", {
     removeEventListener: vi.fn(),
     dispatchEvent: vi.fn(),
   })),
-});
+})
 
 beforeEach(() => {
   useQuizStore.setState({
@@ -29,7 +31,7 @@ beforeEach(() => {
     wrongOnlyMode: false,
     chapterProgress: {},
     shuffleEnabled: false,
-  });
+  })
   useMockExamStore.setState({
     questions: [],
     answers: {},
@@ -37,15 +39,15 @@ beforeEach(() => {
     remainingSeconds: 50 * 60,
     isStarted: false,
     isFinished: false,
-    examId: "",
-    subjectId: "",
-    subjectName: "",
+    examId: '',
+    subjectId: '',
+    subjectName: '',
     examHistory: [],
-  });
-  localStorage.clear();
-});
+  })
+  localStorage.clear()
+})
 
 afterEach(() => {
-  cleanup();
-  vi.restoreAllMocks();
-});
+  cleanup()
+  vi.restoreAllMocks()
+})

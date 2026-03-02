@@ -1,37 +1,33 @@
-import { useState, useMemo } from "react";
-import { ChevronRight, Check, Search } from "lucide-react";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
-import { Input } from "@/components/ui/input";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
-import { useTreeStore } from "@/stores/use-tree-store";
-import { getLevelColor, getLevelLabel, filterTree } from "@/utils/tree-utils";
-import type { TreeNode } from "@/types/tree";
+import { useMemo, useState } from 'react'
+import { Check, ChevronRight, Search } from 'lucide-react'
+
+import { Badge } from '@/components/ui/badge'
+import { Button } from '@/components/ui/button'
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible'
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
+import { Input } from '@/components/ui/input'
+import { useTreeStore } from '@/stores/use-tree-store'
+import { filterTree, getLevelColor, getLevelLabel } from '@/utils/tree-utils'
+import type { TreeNode } from '@/types/tree'
 
 interface TreeNodePickerProps {
-  open: boolean;
-  onOpenChange: (open: boolean) => void;
-  subjectId: string;
-  selectedNodeId?: string;
-  onSelect: (nodeId: string, nodePath: string) => void;
+  open: boolean
+  onOpenChange: (open: boolean) => void
+  subjectId: string
+  selectedNodeId?: string
+  onSelect: (nodeId: string, nodePath: string) => void
 }
 
 function getNodePath(nodes: TreeNode[], targetId: string, path: string[] = []): string | null {
   for (const node of nodes) {
-    const currentPath = [...path, node.label];
-    if (node.id === targetId) return currentPath.join(" > ");
+    const currentPath = [...path, node.label]
+    if (node.id === targetId) return currentPath.join(' > ')
     if (node.children) {
-      const found = getNodePath(node.children, targetId, currentPath);
-      if (found) return found;
+      const found = getNodePath(node.children, targetId, currentPath)
+      if (found) return found
     }
   }
-  return null;
+  return null
 }
 
 function PickerNode({
@@ -41,64 +37,64 @@ function PickerNode({
   onSelect,
   defaultOpen = false,
 }: {
-  node: TreeNode;
-  depth?: number;
-  selectedId?: string;
-  onSelect: (id: string) => void;
-  defaultOpen?: boolean;
+  node: TreeNode
+  depth?: number
+  selectedId?: string
+  onSelect: (id: string) => void
+  defaultOpen?: boolean
 }) {
-  const [isOpen, setIsOpen] = useState(defaultOpen);
-  const hasChildren = node.children && node.children.length > 0;
-  const isSelected = node.id === selectedId;
-  const indent = depth * 16;
+  const [isOpen, setIsOpen] = useState(defaultOpen)
+  const hasChildren = node.children && node.children.length > 0
+  const isSelected = node.id === selectedId
+  const indent = depth * 16
 
   if (!hasChildren) {
     return (
       <button
-        className={`flex w-full items-center gap-1.5 rounded-md px-2 py-1.5 text-left hover:bg-accent/50 ${
-          isSelected ? "bg-primary/10 ring-1 ring-primary/30" : ""
+        className={`hover:bg-accent/50 flex w-full items-center gap-1.5 rounded-md px-2 py-1.5 text-left ${
+          isSelected ? 'bg-primary/10 ring-primary/30 ring-1' : ''
         }`}
         style={{ paddingLeft: `${indent + 8}px` }}
         onClick={() => onSelect(node.id)}
       >
-        <div className="mt-0.5 h-1.5 w-1.5 shrink-0 rounded-full bg-muted-foreground/40" />
-        <Badge className={`text-[10px] px-1.5 py-0 ${getLevelColor(node.level)}`}>
+        <div className="bg-muted-foreground/40 mt-0.5 h-1.5 w-1.5 shrink-0 rounded-full" />
+        <Badge className={`px-1.5 py-0 text-[10px] ${getLevelColor(node.level)}`}>
           {getLevelLabel(node.level)}
         </Badge>
-        <span className="text-sm flex-1">{node.label}</span>
-        {isSelected && <Check className="h-4 w-4 text-primary shrink-0" />}
+        <span className="flex-1 text-sm">{node.label}</span>
+        {isSelected && <Check className="text-primary h-4 w-4 shrink-0" />}
       </button>
-    );
+    )
   }
 
   return (
     <Collapsible open={isOpen} onOpenChange={setIsOpen}>
       <div
-        className={`flex items-center gap-1 rounded-md hover:bg-accent/50 ${
-          isSelected ? "bg-primary/10 ring-1 ring-primary/30" : ""
+        className={`hover:bg-accent/50 flex items-center gap-1 rounded-md ${
+          isSelected ? 'bg-primary/10 ring-primary/30 ring-1' : ''
         }`}
         style={{ paddingLeft: `${indent}px` }}
       >
         <CollapsibleTrigger asChild>
           <button className="flex flex-1 items-center gap-1.5 px-2 py-1.5 text-left">
             <ChevronRight
-              className={`h-4 w-4 shrink-0 text-muted-foreground transition-transform ${
-                isOpen ? "rotate-90" : ""
+              className={`text-muted-foreground h-4 w-4 shrink-0 transition-transform ${
+                isOpen ? 'rotate-90' : ''
               }`}
             />
-            <Badge className={`text-[10px] px-1.5 py-0 ${getLevelColor(node.level)}`}>
+            <Badge className={`px-1.5 py-0 text-[10px] ${getLevelColor(node.level)}`}>
               {getLevelLabel(node.level)}
             </Badge>
-            <span className="text-sm font-medium flex-1">{node.label}</span>
+            <span className="flex-1 text-sm font-medium">{node.label}</span>
           </button>
         </CollapsibleTrigger>
         <Button
-          variant={isSelected ? "default" : "ghost"}
+          variant={isSelected ? 'default' : 'ghost'}
           size="sm"
-          className="h-6 text-xs mr-1 shrink-0"
+          className="mr-1 h-6 shrink-0 text-xs"
           onClick={() => onSelect(node.id)}
         >
-          {isSelected ? <Check className="h-3 w-3" /> : "선택"}
+          {isSelected ? <Check className="h-3 w-3" /> : '선택'}
         </Button>
       </div>
       <CollapsibleContent>
@@ -114,7 +110,7 @@ function PickerNode({
         ))}
       </CollapsibleContent>
     </Collapsible>
-  );
+  )
 }
 
 export function TreeNodePicker({
@@ -124,48 +120,45 @@ export function TreeNodePicker({
   selectedNodeId,
   onSelect,
 }: TreeNodePickerProps) {
-  const [search, setSearch] = useState("");
-  const tree = useTreeStore((s) => s.getTree(subjectId));
+  const [search, setSearch] = useState('')
+  const tree = useTreeStore((s) => s.getTree(subjectId))
 
-  const filteredTree = useMemo(
-    () => (search ? filterTree(tree, search) : tree),
-    [tree, search]
-  );
+  const filteredTree = useMemo(() => (search ? filterTree(tree, search) : tree), [tree, search])
 
   const handleSelect = (nodeId: string) => {
-    const path = getNodePath(tree, nodeId);
-    onSelect(nodeId, path ?? nodeId);
-    onOpenChange(false);
-    setSearch("");
-  };
+    const path = getNodePath(tree, nodeId)
+    onSelect(nodeId, path ?? nodeId)
+    onOpenChange(false)
+    setSearch('')
+  }
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-h-[80vh] flex flex-col p-4 gap-3">
+      <DialogContent className="flex max-h-[80vh] flex-col gap-3 p-4">
         <DialogHeader>
           <DialogTitle className="text-base">트리 노드 선택</DialogTitle>
         </DialogHeader>
 
         <div className="relative">
-          <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+          <Search className="text-muted-foreground absolute top-2.5 left-2.5 h-4 w-4" />
           <Input
             placeholder="개념 검색..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="pl-8 h-9"
+            className="h-9 pl-8"
           />
         </div>
 
         {selectedNodeId && (
-          <div className="text-xs text-muted-foreground bg-muted/50 rounded-md px-2 py-1">
+          <div className="text-muted-foreground bg-muted/50 rounded-md px-2 py-1 text-xs">
             현재: {getNodePath(tree, selectedNodeId) ?? selectedNodeId}
           </div>
         )}
 
-        <div className="flex-1 overflow-y-auto rounded-lg border p-1 min-h-0">
+        <div className="min-h-0 flex-1 overflow-y-auto rounded-lg border p-1">
           {filteredTree.length === 0 ? (
-            <p className="text-sm text-muted-foreground text-center py-6">
-              {search ? "검색 결과가 없습니다." : "트리 데이터가 없습니다."}
+            <p className="text-muted-foreground py-6 text-center text-sm">
+              {search ? '검색 결과가 없습니다.' : '트리 데이터가 없습니다.'}
             </p>
           ) : (
             filteredTree.map((node) => (
@@ -181,5 +174,5 @@ export function TreeNodePicker({
         </div>
       </DialogContent>
     </Dialog>
-  );
+  )
 }

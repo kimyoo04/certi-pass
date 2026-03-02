@@ -1,31 +1,32 @@
-import { useEffect, useMemo, useCallback, useState } from "react";
-import { useParams, useNavigate, useSearchParams } from "react-router-dom";
-import { Card, CardContent } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { useSwipe } from "@/hooks/use-swipe";
-import { Progress } from "@/components/ui/progress";
-import { MobileLayout } from "@/components/mobile-layout";
-import { useQuizStore } from "@/stores/use-quiz-store";
-import { useQuestionEditStore } from "@/stores/use-question-edit-store";
-import type { MultipleChoiceQuestion, Question } from "@/types";
-import { fisherYatesShuffle } from "@/utils/shuffle";
-import { PencilIcon, BookmarkIcon, BookmarkCheckIcon } from "lucide-react";
-import { QuestionEditDialog } from "@/components/question-edit-dialog";
-import { useBookmarkStore } from "@/stores/use-bookmark-store";
-import { DATA_PATHS, QUERY_MODES, QUESTION_TYPES } from "@/constants";
+import { useCallback, useEffect, useMemo, useState } from 'react'
+import type { MultipleChoiceQuestion, Question } from '@/types'
+import { BookmarkCheckIcon, BookmarkIcon, PencilIcon } from 'lucide-react'
+import { useNavigate, useParams, useSearchParams } from 'react-router-dom'
+
+import { MobileLayout } from '@/components/mobile-layout'
+import { QuestionEditDialog } from '@/components/question-edit-dialog'
+import { Badge } from '@/components/ui/badge'
+import { Button } from '@/components/ui/button'
+import { Card, CardContent } from '@/components/ui/card'
+import { Progress } from '@/components/ui/progress'
+import { useBookmarkStore } from '@/stores/use-bookmark-store'
+import { useQuestionEditStore } from '@/stores/use-question-edit-store'
+import { useQuizStore } from '@/stores/use-quiz-store'
+import { useSwipe } from '@/hooks/use-swipe'
+import { fisherYatesShuffle } from '@/utils/shuffle'
+import { DATA_PATHS, QUERY_MODES, QUESTION_TYPES } from '@/constants'
 
 export function QuizPage() {
   const { examId, subjectId, chapterId } = useParams<{
-    examId: string;
-    subjectId: string;
-    chapterId: string;
-  }>();
-  const navigate = useNavigate();
-  const [searchParams] = useSearchParams();
-  const mode = searchParams.get("mode");
-  const wrongOnly = mode === QUERY_MODES.WRONG;
-  const bookmarkOnly = mode === QUERY_MODES.BOOKMARK;
+    examId: string
+    subjectId: string
+    chapterId: string
+  }>()
+  const navigate = useNavigate()
+  const [searchParams] = useSearchParams()
+  const mode = searchParams.get('mode')
+  const wrongOnly = mode === QUERY_MODES.WRONG
+  const bookmarkOnly = mode === QUERY_MODES.BOOKMARK
 
   const {
     questions,
@@ -38,93 +39,107 @@ export function QuizPage() {
     goToQuestion,
     selectAnswer,
     recordMcAnswer,
-  } = useQuizStore();
+  } = useQuizStore()
 
-  const getEditedQuestion = useQuestionEditStore((s) => s.getEditedQuestion);
-  const [editTarget, setEditTarget] = useState<Question | null>(null);
-  const { isBookmarked, toggleBookmark } = useBookmarkStore();
+  const getEditedQuestion = useQuestionEditStore((s) => s.getEditedQuestion)
+  const [editTarget, setEditTarget] = useState<Question | null>(null)
+  const { isBookmarked, toggleBookmark } = useBookmarkStore()
 
-  const chapterKey = `${examId}/${subjectId}/${chapterId}`;
+  const chapterKey = `${examId}/${subjectId}/${chapterId}`
 
   useEffect(() => {
-    let cancelled = false;
+    let cancelled = false
     fetch(DATA_PATHS.CHAPTER_QUIZ(examId!, subjectId!, chapterId!))
       .then((res) => res.json())
       .then((data) => {
-        if (!cancelled) setQuestions(data);
-      });
-    return () => { cancelled = true; };
-  }, [examId, subjectId, chapterId, setQuestions]);
+        if (!cancelled) setQuestions(data)
+      })
+    return () => {
+      cancelled = true
+    }
+  }, [examId, subjectId, chapterId, setQuestions])
 
   const mcQuestions = useMemo(() => {
     let all = questions
-      .filter(
-        (q): q is MultipleChoiceQuestion => q.type === QUESTION_TYPES.MULTIPLE_CHOICE
-      )
-      .map((q) => getEditedQuestion(q));
+      .filter((q): q is MultipleChoiceQuestion => q.type === QUESTION_TYPES.MULTIPLE_CHOICE)
+      .map((q) => getEditedQuestion(q))
     if (wrongOnly) {
-      const wrongIds = chapterProgress[chapterKey]?.wrongIds ?? [];
-      all = all.filter((q) => wrongIds.includes(q.id));
+      const wrongIds = chapterProgress[chapterKey]?.wrongIds ?? []
+      all = all.filter((q) => wrongIds.includes(q.id))
     }
     if (bookmarkOnly) {
-      all = all.filter((q) => isBookmarked(q.id));
+      all = all.filter((q) => isBookmarked(q.id))
     }
     if (shuffleEnabled) {
-      return fisherYatesShuffle(all, chapterKey);
+      return fisherYatesShuffle(all, chapterKey)
     }
-    return all;
-  }, [questions, wrongOnly, bookmarkOnly, chapterProgress, chapterKey, shuffleEnabled, getEditedQuestion, isBookmarked]);
+    return all
+  }, [
+    questions,
+    wrongOnly,
+    bookmarkOnly,
+    chapterProgress,
+    chapterKey,
+    shuffleEnabled,
+    getEditedQuestion,
+    isBookmarked,
+  ])
 
   const handleSelect = useCallback(
     (idx: number) => {
-      if (selectedAnswer !== null) return;
-      selectAnswer(idx);
-      const question = mcQuestions[Math.min(currentIndex, mcQuestions.length - 1)];
-      const correct = idx === question.correctIndex;
-      recordMcAnswer(chapterKey, question.id, correct, mcQuestions.length);
+      if (selectedAnswer !== null) return
+      selectAnswer(idx)
+      const question = mcQuestions[Math.min(currentIndex, mcQuestions.length - 1)]
+      const correct = idx === question.correctIndex
+      recordMcAnswer(chapterKey, question.id, correct, mcQuestions.length)
     },
-    [selectedAnswer, selectAnswer, mcQuestions, currentIndex, recordMcAnswer, chapterKey]
-  );
+    [selectedAnswer, selectAnswer, mcQuestions, currentIndex, recordMcAnswer, chapterKey],
+  )
 
-  const safeIndex = Math.min(currentIndex, Math.max(mcQuestions.length - 1, 0));
-  const isLast = safeIndex === mcQuestions.length - 1;
+  const safeIndex = Math.min(currentIndex, Math.max(mcQuestions.length - 1, 0))
+  const isLast = safeIndex === mcQuestions.length - 1
 
   const swipeHandlers = useSwipe({
     onSwipeLeft: () => !isLast && goToQuestion(safeIndex + 1),
     onSwipeRight: () => safeIndex > 0 && goToQuestion(safeIndex - 1),
-  });
+  })
 
   if (mcQuestions.length === 0) {
-    const isLoading = questions.length === 0;
+    const isLoading = questions.length === 0
     return (
-      <MobileLayout title={wrongOnly ? "오답 풀기" : bookmarkOnly ? "북마크 문제" : "기출 문제"} showBack>
+      <MobileLayout
+        title={wrongOnly ? '오답 풀기' : bookmarkOnly ? '북마크 문제' : '기출 문제'}
+        showBack
+      >
         <div className="flex flex-col items-center justify-center py-20 text-center">
           {isLoading ? (
-            <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" />
+            <div className="border-primary h-8 w-8 animate-spin rounded-full border-4 border-t-transparent" />
           ) : (
             <>
-              <p className="text-4xl mb-3">{bookmarkOnly ? "📑" : "🎉"}</p>
-              <p className="font-semibold mb-1">
-                {bookmarkOnly ? "북마크한 문제가 없습니다" : "오답이 없습니다!"}
+              <p className="mb-3 text-4xl">{bookmarkOnly ? '📑' : '🎉'}</p>
+              <p className="mb-1 font-semibold">
+                {bookmarkOnly ? '북마크한 문제가 없습니다' : '오답이 없습니다!'}
               </p>
-              <p className="text-sm text-muted-foreground mb-4">
-                {bookmarkOnly ? "문제 풀이 중 북마크 아이콘을 눌러 추가하세요" : "모든 문제를 맞혔습니다"}
+              <p className="text-muted-foreground mb-4 text-sm">
+                {bookmarkOnly
+                  ? '문제 풀이 중 북마크 아이콘을 눌러 추가하세요'
+                  : '모든 문제를 맞혔습니다'}
               </p>
               <Button onClick={() => navigate(-1)}>돌아가기</Button>
             </>
           )}
         </div>
       </MobileLayout>
-    );
+    )
   }
 
-  const question = mcQuestions[safeIndex];
-  const isCorrect = selectedAnswer === question.correctIndex;
-  const progressPercent = ((safeIndex + 1) / mcQuestions.length) * 100;
+  const question = mcQuestions[safeIndex]
+  const isCorrect = selectedAnswer === question.correctIndex
+  const progressPercent = ((safeIndex + 1) / mcQuestions.length) * 100
 
   return (
     <MobileLayout
-      title={`${wrongOnly ? "오답 풀기" : bookmarkOnly ? "북마크 문제" : "기출 문제"} (${safeIndex + 1}/${mcQuestions.length})`}
+      title={`${wrongOnly ? '오답 풀기' : bookmarkOnly ? '북마크 문제' : '기출 문제'} (${safeIndex + 1}/${mcQuestions.length})`}
       showBack
     >
       <div className="space-y-4" {...swipeHandlers}>
@@ -155,10 +170,10 @@ export function QuizPage() {
                   size="sm"
                   className="h-7 w-7 p-0"
                   onClick={() => toggleBookmark(question.id)}
-                  aria-label={isBookmarked(question.id) ? "북마크 해제" : "북마크 추가"}
+                  aria-label={isBookmarked(question.id) ? '북마크 해제' : '북마크 추가'}
                 >
                   {isBookmarked(question.id) ? (
-                    <BookmarkCheckIcon className="h-4 w-4 text-primary" />
+                    <BookmarkCheckIcon className="text-primary h-4 w-4" />
                   ) : (
                     <BookmarkIcon className="h-4 w-4" />
                   )}
@@ -176,21 +191,19 @@ export function QuizPage() {
               </div>
             </div>
 
-            <p className="mb-5 text-base font-medium leading-relaxed">
-              {question.content}
-            </p>
+            <p className="mb-5 text-base leading-relaxed font-medium">{question.content}</p>
 
             <div className="space-y-2">
               {question.options.map((option, idx) => {
-                let optionStyle = "border-border hover:border-primary/50";
+                let optionStyle = 'border-border hover:border-primary/50'
 
                 if (selectedAnswer !== null) {
                   if (idx === question.correctIndex) {
-                    optionStyle = "border-green-500 bg-green-50 dark:bg-green-950";
+                    optionStyle = 'border-green-500 bg-green-50 dark:bg-green-950'
                   } else if (idx === selectedAnswer && !isCorrect) {
-                    optionStyle = "border-red-500 bg-red-50 dark:bg-red-950";
+                    optionStyle = 'border-red-500 bg-red-50 dark:bg-red-950'
                   } else {
-                    optionStyle = "border-border opacity-50";
+                    optionStyle = 'border-border opacity-50'
                   }
                 }
 
@@ -199,34 +212,40 @@ export function QuizPage() {
                     key={idx}
                     className={`w-full rounded-lg border p-3 text-left text-sm transition-colors ${optionStyle} ${
                       selectedAnswer === null
-                        ? "cursor-pointer active:scale-[0.98]"
-                        : "cursor-default"
+                        ? 'cursor-pointer active:scale-[0.98]'
+                        : 'cursor-default'
                     }`}
                     onClick={() => handleSelect(idx)}
                     disabled={selectedAnswer !== null}
                   >
-                    <span className="mr-2 font-medium text-muted-foreground">
-                      {idx + 1}.
-                    </span>
+                    <span className="text-muted-foreground mr-2 font-medium">{idx + 1}.</span>
                     {option}
                   </button>
-                );
+                )
               })}
             </div>
           </CardContent>
         </Card>
 
         {showExplanation && (
-          <Card className={isCorrect ? "border-green-200 dark:border-green-800" : "border-red-200 dark:border-red-800"}>
+          <Card
+            className={
+              isCorrect
+                ? 'border-green-200 dark:border-green-800'
+                : 'border-red-200 dark:border-red-800'
+            }
+          >
             <CardContent className="p-4">
               <div className="mb-2 flex items-center gap-2">
-                <span className="text-lg">{isCorrect ? "🎉" : "😢"}</span>
-                <span className="font-semibold text-sm">
-                  {isCorrect ? "정답입니다!" : "오답입니다"}
+                <span className="text-lg">{isCorrect ? '🎉' : '😢'}</span>
+                <span className="text-sm font-semibold">
+                  {isCorrect ? '정답입니다!' : '오답입니다'}
                 </span>
               </div>
-              <p className={`text-sm leading-relaxed ${question.explanation ? "text-muted-foreground" : "italic text-muted-foreground/60"}`}>
-                {question.explanation || "해설이 아직 준비되지 않았습니다."}
+              <p
+                className={`text-sm leading-relaxed ${question.explanation ? 'text-muted-foreground' : 'text-muted-foreground/60 italic'}`}
+              >
+                {question.explanation || '해설이 아직 준비되지 않았습니다.'}
               </p>
               <Button
                 variant="outline"
@@ -254,7 +273,7 @@ export function QuizPage() {
               className="flex-1"
               onClick={() =>
                 navigate(
-                  `/exam/${examId}/study/${subjectId}/${chapterId}/result?mode=${wrongOnly ? QUERY_MODES.WRONG : QUERY_MODES.QUIZ}`
+                  `/exam/${examId}/study/${subjectId}/${chapterId}/result?mode=${wrongOnly ? QUERY_MODES.WRONG : QUERY_MODES.QUIZ}`,
                 )
               }
             >
@@ -280,5 +299,5 @@ export function QuizPage() {
         />
       )}
     </MobileLayout>
-  );
+  )
 }

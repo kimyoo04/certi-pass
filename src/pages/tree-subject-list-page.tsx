@@ -1,41 +1,38 @@
-import { useParams, useNavigate } from "react-router-dom";
-import { Card, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { MobileLayout } from "@/components/mobile-layout";
-import { examStructure } from "@/data/exam-tree";
-import { countNodes } from "@/utils/tree-utils";
+import { useNavigate, useParams } from 'react-router-dom'
+
+import { MobileLayout } from '@/components/mobile-layout'
+import { Badge } from '@/components/ui/badge'
+import { Card, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { countNodes } from '@/utils/tree-utils'
+import { examStructure } from '@/data/exam-tree'
 
 export function TreeSubjectListPage() {
-  const { examId } = useParams<{ examId: string }>();
-  const navigate = useNavigate();
+  const { examId } = useParams<{ examId: string }>()
+  const navigate = useNavigate()
 
   const sections = [
-    { label: "1차 시험", subjects: examStructure.firstExam },
-    { label: "2차 시험", subjects: examStructure.secondExam },
-  ];
+    { label: '1차 시험', subjects: examStructure.firstExam },
+    { label: '2차 시험', subjects: examStructure.secondExam },
+  ]
 
   return (
     <MobileLayout title="개념 트리" showBack>
       <div className="space-y-5">
         {sections.map((section) => (
           <div key={section.label}>
-            <h2 className="mb-2 text-sm font-semibold text-muted-foreground">
-              {section.label}
-            </h2>
+            <h2 className="text-muted-foreground mb-2 text-sm font-semibold">{section.label}</h2>
             <div className="space-y-2">
               {section.subjects.map((subject) => {
-                const nodeCount = countNodes(subject.tree);
+                const nodeCount = countNodes(subject.tree)
                 return (
                   <Card
                     key={subject.id}
-                    className="cursor-pointer transition-colors hover:border-primary/50"
+                    className="hover:border-primary/50 cursor-pointer transition-colors"
                     onClick={() => navigate(`/exam/${examId}/tree/${subject.id}`)}
                   >
                     <CardHeader className="p-3">
                       <div className="flex items-center justify-between">
-                        <CardTitle className="text-sm font-medium">
-                          {subject.name}
-                        </CardTitle>
+                        <CardTitle className="text-sm font-medium">{subject.name}</CardTitle>
                         <div className="flex items-center gap-1.5">
                           <Badge variant="outline" className="text-xs">
                             {nodeCount}개 개념
@@ -45,17 +42,17 @@ export function TreeSubjectListPage() {
                           </Badge>
                         </div>
                       </div>
-                      <CardDescription className="text-xs mt-1">
-                        {subject.tree.map((n) => n.label).join(" · ")}
+                      <CardDescription className="mt-1 text-xs">
+                        {subject.tree.map((n) => n.label).join(' · ')}
                       </CardDescription>
                     </CardHeader>
                   </Card>
-                );
+                )
               })}
             </div>
           </div>
         ))}
       </div>
     </MobileLayout>
-  );
+  )
 }
