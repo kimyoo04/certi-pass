@@ -65,23 +65,28 @@ export function SubjectPage() {
         <div className="space-y-1.5">
           <h2 className="text-xs font-medium text-muted-foreground px-1">모의고사</h2>
           <div className="grid grid-cols-2 gap-2">
-            {curriculum.subjects.map((subject) => (
-              <Card
-                key={`mock-${subject.id}`}
-                className="cursor-pointer transition-colors hover:border-primary/50"
-                onClick={() => navigate(`/exam/${examId}/mock/${subject.id}`)}
-              >
-                <CardHeader className="p-2.5">
-                  <div className="flex items-center gap-1.5">
-                    <span className="text-sm">📝</span>
-                    <div>
-                      <CardTitle className="text-xs font-medium truncate">{subject.name}</CardTitle>
-                      <p className="text-[10px] text-muted-foreground">40문제 / 50분</p>
+            {curriculum.subjects.map((subject) => {
+              const isSmall = subject.id === "s4" || subject.id === "s6";
+              const qCount = isSmall ? 20 : 40;
+              const minutes = isSmall ? 25 : 50;
+              return (
+                <Card
+                  key={`mock-${subject.id}`}
+                  className="cursor-pointer transition-colors hover:border-primary/50"
+                  onClick={() => navigate(`/exam/${examId}/mock/${subject.id}`)}
+                >
+                  <CardHeader className="p-2.5">
+                    <div className="flex items-center gap-1.5">
+                      <span className="text-sm">📝</span>
+                      <div>
+                        <CardTitle className="text-xs font-medium truncate">{subject.name}</CardTitle>
+                        <p className="text-[10px] text-muted-foreground">{qCount}문제 / {minutes}분</p>
+                      </div>
                     </div>
-                  </div>
-                </CardHeader>
-              </Card>
-            ))}
+                  </CardHeader>
+                </Card>
+              );
+            })}
           </div>
         </div>
 
