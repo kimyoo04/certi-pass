@@ -7,6 +7,7 @@ import { MobileLayout } from "@/components/mobile-layout";
 import { ExamTimer } from "@/components/exam-timer";
 import { useMockExamStore } from "@/stores/use-mock-exam-store";
 import type { MultipleChoiceQuestion, Curriculum } from "@/types";
+import { DATA_PATHS } from "@/constants";
 
 export function MockExamPage() {
   const { examId, subjectId } = useParams<{ examId: string; subjectId: string }>();
@@ -36,8 +37,8 @@ export function MockExamPage() {
     const loadAndStart = async () => {
       try {
         const [quizRes, currRes] = await Promise.all([
-          fetch(`${import.meta.env.BASE_URL}data/${examId}/${subjectId}/all_quiz.json`),
-          fetch(`${import.meta.env.BASE_URL}data/${examId}/curriculum.json`),
+          fetch(DATA_PATHS.ALL_QUIZ(examId!, subjectId!)),
+          fetch(DATA_PATHS.CURRICULUM(examId!)),
         ]);
         const allQuestions: MultipleChoiceQuestion[] = await quizRes.json();
         const curriculum: Curriculum = await currRes.json();

@@ -2,17 +2,7 @@ import { create } from "zustand";
 import { persist } from "zustand/middleware";
 import type { MultipleChoiceQuestion, MockExamResult } from "@/types";
 import { fisherYatesShuffle } from "@/utils/shuffle";
-
-const SMALL_SUBJECTS = new Set(["s4", "s6"]);
-
-function getExamConfig(subjectId: string) {
-  const isSmall = SMALL_SUBJECTS.has(subjectId);
-  return {
-    questionsPerExam: isSmall ? 20 : 40,
-    durationSeconds: isSmall ? 25 * 60 : 50 * 60,
-  };
-}
-const MAX_HISTORY = 50;
+import { STORAGE_KEYS, getExamConfig, EXAM_CONFIG, MAX_EXAM_HISTORY, QUESTION_TYPES } from "@/constants";
 
 interface MockExamState {
   // Session state (not persisted)
@@ -49,7 +39,7 @@ export const useMockExamStore = create<MockExamState>()(
       questions: [],
       answers: {},
       currentIndex: 0,
-      remainingSeconds: 50 * 60,
+      remainingSeconds: EXAM_CONFIG.NORMAL.durationSeconds,
       isStarted: false,
       isFinished: false,
       examId: "",
@@ -59,7 +49,7 @@ export const useMockExamStore = create<MockExamState>()(
 
       startExam: (examId, subjectId, subjectName, allQuestions) => {
         const config = getExamConfig(subjectId);
-        const mcQuestions = allQuestions.filter((q) => q.type === "multiple_choice");
+        const mcQuestions = allQuestions.filter((q) => q.type === QUESTION_TYPES.MULTIPLE_CHOICE);
         const shuffled = fisherYatesShuffle(mcQuestions, `${examId}-${subjectId}-${Date.now()}`);
         const selected = shuffled.slice(0, config.questionsPerExam);
 
@@ -112,7 +102,7 @@ export const useMockExamStore = create<MockExamState>()(
         set((s) => ({
           isFinished: true,
           isStarted: false,
-          examHistory: [result, ...s.examHistory].slice(0, MAX_HISTORY),
+          examHistory: [result, ...s.examHistory].slice(0, MAX_EXAM_HISTORY),
         }));
 
         return result;
@@ -123,7 +113,7 @@ export const useMockExamStore = create<MockExamState>()(
           questions: [],
           answers: {},
           currentIndex: 0,
-          remainingSeconds: 50 * 60,
+          remainingSeconds: EXAM_CONFIG.NORMAL.durationSeconds,
           isStarted: false,
           isFinished: false,
           examId: "",
@@ -132,7 +122,7 @@ export const useMockExamStore = create<MockExamState>()(
         }),
     }),
     {
-      name: "certipass-mock-exam",
+      name: STORAGE_KEYS.MOCK_EXAM,
       partialize: (state) => ({ examHistory: state.examHistory }),
     }
   )

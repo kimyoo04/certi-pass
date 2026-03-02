@@ -17,6 +17,7 @@ import { useTreeStore } from "@/stores/use-tree-store";
 import { flattenTree } from "@/utils/tree-utils";
 import { allSubjects } from "@/data/exam-tree";
 import type { TreeNode } from "@/types/tree";
+import { DATA_PATHS } from "@/constants";
 
 interface QuizQuestion {
   id: string;
@@ -51,7 +52,7 @@ export function ClassifyPage() {
   useEffect(() => {
     if (!examId || !subjectId) return;
     let cancelled = false;
-    fetch(`${import.meta.env.BASE_URL}data/${examId}/${subjectId}/all_quiz.json`)
+    fetch(DATA_PATHS.ALL_QUIZ(examId!, subjectId!))
       .then((res) => res.json())
       .then((data: QuizQuestion[]) => {
         if (!cancelled) {
@@ -66,7 +67,7 @@ export function ClassifyPage() {
   // Load default classifications
   useEffect(() => {
     if (!examId || !subjectId) return;
-    fetch(`${import.meta.env.BASE_URL}data/${examId}/${subjectId}/question_tree_map.json`)
+    fetch(DATA_PATHS.QUESTION_TREE_MAP(examId!, subjectId!))
       .then((res) => res.json())
       .then((data: { classified: Record<string, string> }) => {
         if (data.classified) loadDefaults(data.classified);

@@ -3,6 +3,7 @@ import { persist } from "zustand/middleware";
 import type { TreeNode } from "@/types/tree";
 import { allSubjects } from "@/data/exam-tree";
 import { deepCloneTree, addChildNode, updateNodeInTree, removeNode } from "@/utils/tree-utils";
+import { STORAGE_KEYS } from "@/constants";
 
 interface TreeState {
   /** Custom trees keyed by subjectId (copy-on-write from defaults) */
@@ -91,7 +92,7 @@ export const useTreeStore = create<TreeState>()(
       resetAll: () => set({ customTrees: {} }),
     }),
     {
-      name: "certipass-tree",
+      name: STORAGE_KEYS.TREE,
       partialize: (state) => ({ customTrees: state.customTrees }),
     }
   )

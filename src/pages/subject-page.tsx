@@ -6,6 +6,7 @@ import { Progress } from "@/components/ui/progress";
 import { MobileLayout } from "@/components/mobile-layout";
 import { useQuizStore } from "@/stores/use-quiz-store";
 import type { Curriculum } from "@/types";
+import { DATA_PATHS, getExamConfig } from "@/constants";
 
 export function SubjectPage() {
   const { examId } = useParams<{ examId: string }>();
@@ -14,7 +15,7 @@ export function SubjectPage() {
   const chapterProgress = useQuizStore((s) => s.chapterProgress);
 
   useEffect(() => {
-    fetch(`${import.meta.env.BASE_URL}data/${examId}/curriculum.json`)
+    fetch(DATA_PATHS.CURRICULUM(examId!))
       .then((res) => res.json())
       .then(setCurriculum);
   }, [examId]);
@@ -66,9 +67,9 @@ export function SubjectPage() {
           <h2 className="text-xs font-medium text-muted-foreground px-1">모의고사</h2>
           <div className="grid grid-cols-2 gap-2">
             {curriculum.subjects.map((subject) => {
-              const isSmall = subject.id === "s4" || subject.id === "s6";
-              const qCount = isSmall ? 20 : 40;
-              const minutes = isSmall ? 25 : 50;
+              const config = getExamConfig(subject.id);
+              const qCount = config.questionsPerExam;
+              const minutes = config.durationMinutes;
               return (
                 <Card
                   key={`mock-${subject.id}`}

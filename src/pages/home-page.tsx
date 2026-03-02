@@ -4,13 +4,14 @@ import { Card, CardHeader, CardTitle, CardDescription } from "@/components/ui/ca
 import { Badge } from "@/components/ui/badge";
 import { MobileLayout } from "@/components/mobile-layout";
 import type { Exam } from "@/types";
+import { DATA_PATHS } from "@/constants";
 
 export function HomePage() {
   const [exams, setExams] = useState<Exam[]>([]);
   const navigate = useNavigate();
 
   useEffect(() => {
-    fetch(`${import.meta.env.BASE_URL}data/exams.json`)
+    fetch(DATA_PATHS.EXAMS)
       .then((res) => res.json())
       .then(setExams);
   }, []);

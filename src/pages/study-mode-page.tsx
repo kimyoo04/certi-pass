@@ -4,6 +4,7 @@ import { Badge } from "@/components/ui/badge";
 import { MobileLayout } from "@/components/mobile-layout";
 import { useQuizStore } from "@/stores/use-quiz-store";
 import { useBookmarkStore } from "@/stores/use-bookmark-store";
+import { QUERY_MODES } from "@/constants";
 
 export function StudyModePage() {
   const { examId, subjectId, chapterId } = useParams<{
@@ -71,7 +72,7 @@ export function StudyModePage() {
         {wrongCount > 0 && (
           <Card
             className="cursor-pointer border-red-200 transition-colors hover:border-red-400 dark:border-red-900"
-            onClick={() => navigate(`${basePath}/quiz?mode=wrong`)}
+            onClick={() => navigate(`${basePath}/quiz?mode=${QUERY_MODES.WRONG}`)}
           >
             <CardHeader className="p-4">
               <div className="flex items-center gap-3">
@@ -95,7 +96,7 @@ export function StudyModePage() {
         {bookmarkCount > 0 && (
           <Card
             className="cursor-pointer border-primary/30 transition-colors hover:border-primary/60"
-            onClick={() => navigate(`${basePath}/quiz?mode=bookmark`)}
+            onClick={() => navigate(`${basePath}/quiz?mode=${QUERY_MODES.BOOKMARK}`)}
           >
             <CardHeader className="p-4">
               <div className="flex items-center gap-3">

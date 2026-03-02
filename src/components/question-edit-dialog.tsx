@@ -20,6 +20,7 @@ import {
 import { useQuestionEditStore } from "@/stores/use-question-edit-store";
 import type { Question, MultipleChoiceQuestion, FillInTheBlankQuestion } from "@/types";
 import { Trash2Icon, PlusIcon } from "lucide-react";
+import { QUESTION_TYPES } from "@/constants";
 
 interface QuestionEditDialogProps {
   question: Question;
@@ -63,18 +64,18 @@ function QuestionEditDialogContent({
   const [explanation, setExplanation] = useState(merged.explanation);
   // MC-specific
   const [options, setOptions] = useState<string[]>(() =>
-    merged.type === "multiple_choice" ? [...(merged as MultipleChoiceQuestion).options] : []
+    merged.type === QUESTION_TYPES.MULTIPLE_CHOICE ? [...(merged as MultipleChoiceQuestion).options] : []
   );
   const [correctIndex, setCorrectIndex] = useState(() =>
-    merged.type === "multiple_choice" ? (merged as MultipleChoiceQuestion).correctIndex : 0
+    merged.type === QUESTION_TYPES.MULTIPLE_CHOICE ? (merged as MultipleChoiceQuestion).correctIndex : 0
   );
   // Fill-blank-specific
   const [answer, setAnswer] = useState(() =>
-    merged.type === "fill_in_the_blank" ? (merged as FillInTheBlankQuestion).answer : ""
+    merged.type === QUESTION_TYPES.FILL_IN_THE_BLANK ? (merged as FillInTheBlankQuestion).answer : ""
   );
 
   const handleSave = () => {
-    if (question.type === "multiple_choice") {
+    if (question.type === QUESTION_TYPES.MULTIPLE_CHOICE) {
       setQuestionEdit(question.id, {
         content,
         explanation,
@@ -118,7 +119,7 @@ function QuestionEditDialogContent({
       <DialogHeader>
         <DialogTitle>문제 편집</DialogTitle>
         <DialogDescription>
-          {question.id} ({question.type === "multiple_choice" ? "객관식" : "빈칸뚫기"})
+          {question.id} ({question.type === QUESTION_TYPES.MULTIPLE_CHOICE ? "객관식" : "빈칸뚫기"})
         </DialogDescription>
       </DialogHeader>
 
@@ -133,7 +134,7 @@ function QuestionEditDialogContent({
             />
           </div>
 
-          {question.type === "multiple_choice" && (
+          {question.type === QUESTION_TYPES.MULTIPLE_CHOICE && (
             <>
               <div>
                 <label className="text-sm font-medium mb-1 block">선택지</label>
@@ -193,7 +194,7 @@ function QuestionEditDialogContent({
             </>
           )}
 
-          {question.type === "fill_in_the_blank" && (
+          {question.type === QUESTION_TYPES.FILL_IN_THE_BLANK && (
             <div>
               <label className="text-sm font-medium mb-1 block">정답</label>
               <Input

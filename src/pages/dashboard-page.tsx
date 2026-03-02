@@ -8,6 +8,7 @@ import { useQuizStore } from "@/stores/use-quiz-store";
 import { useMockExamStore } from "@/stores/use-mock-exam-store";
 import { aggregateBySubject, getOverallStats, getWeakAreas } from "@/utils/stats-utils";
 import type { Curriculum } from "@/types";
+import { DATA_PATHS } from "@/constants";
 
 export function DashboardPage() {
   const { examId } = useParams<{ examId: string }>();
@@ -17,7 +18,7 @@ export function DashboardPage() {
   const examHistory = useMockExamStore((s) => s.examHistory);
 
   useEffect(() => {
-    fetch(`${import.meta.env.BASE_URL}data/${examId}/curriculum.json`)
+    fetch(DATA_PATHS.CURRICULUM(examId!))
       .then((res) => res.json())
       .then(setCurriculum);
   }, [examId]);

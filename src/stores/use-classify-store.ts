@@ -1,5 +1,6 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
+import { STORAGE_KEYS } from "@/constants";
 
 interface ClassifyState {
   /** User manual overrides: questionId → treeNodeId */
@@ -50,7 +51,7 @@ export const useClassifyStore = create<ClassifyState>()(
       },
     }),
     {
-      name: "certipass-classify",
+      name: STORAGE_KEYS.CLASSIFY,
       partialize: (state) => ({ overrides: state.overrides }),
     }
   )

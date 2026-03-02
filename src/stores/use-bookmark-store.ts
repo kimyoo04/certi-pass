@@ -1,5 +1,6 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
+import { STORAGE_KEYS } from "@/constants";
 
 interface BookmarkState {
   bookmarks: Record<string, boolean>;
@@ -32,7 +33,7 @@ export const useBookmarkStore = create<BookmarkState>()(
       clearBookmarks: () => set({ bookmarks: {} }),
     }),
     {
-      name: "certipass-bookmarks",
+      name: STORAGE_KEYS.BOOKMARKS,
       partialize: (state) => ({ bookmarks: state.bookmarks }),
     }
   )

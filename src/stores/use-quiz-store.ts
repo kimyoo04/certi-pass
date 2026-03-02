@@ -1,6 +1,7 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
 import type { Question, ChapterProgress } from "@/types";
+import { STORAGE_KEYS } from "@/constants";
 
 interface QuizState {
   // Session state (not persisted)
@@ -130,7 +131,7 @@ export const useQuizStore = create<QuizState>()(
         }),
     }),
     {
-      name: "certipass-quiz",
+      name: STORAGE_KEYS.QUIZ,
       partialize: (state) => ({
         chapterProgress: state.chapterProgress,
         shuffleEnabled: state.shuffleEnabled,

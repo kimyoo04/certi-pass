@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { MobileLayout } from "@/components/mobile-layout";
 import { useQuizStore } from "@/stores/use-quiz-store";
+import { QUERY_MODES } from "@/constants";
 
 export function ResultPage() {
   const { examId, subjectId, chapterId } = useParams<{
@@ -13,7 +14,7 @@ export function ResultPage() {
   }>();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
-  const mode = searchParams.get("mode") ?? "quiz";
+  const mode = searchParams.get("mode") ?? QUERY_MODES.QUIZ;
 
   const chapterKey = `${examId}/${subjectId}/${chapterId}`;
   const progress = useQuizStore((s) => s.chapterProgress[chapterKey]);
@@ -76,7 +77,7 @@ export function ResultPage() {
             <Button
               className="w-full"
               variant="destructive"
-              onClick={() => navigate(`${basePath}/quiz?mode=wrong`)}
+              onClick={() => navigate(`${basePath}/quiz?mode=${QUERY_MODES.WRONG}`)}
             >
               오답만 다시 풀기 ({wrong}문제)
             </Button>
@@ -86,7 +87,7 @@ export function ResultPage() {
             variant={wrong > 0 ? "outline" : "default"}
             onClick={() => navigate(`${basePath}/quiz`)}
           >
-            {mode === "wrong" ? "전체 문제 풀기" : "처음부터 다시 풀기"}
+            {mode === QUERY_MODES.WRONG ? "전체 문제 풀기" : "처음부터 다시 풀기"}
           </Button>
           <Button
             className="w-full"

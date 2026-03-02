@@ -12,6 +12,7 @@ import type { FillInTheBlankQuestion, Question } from "@/types";
 import { PencilIcon, BookmarkIcon, BookmarkCheckIcon } from "lucide-react";
 import { QuestionEditDialog } from "@/components/question-edit-dialog";
 import { useBookmarkStore } from "@/stores/use-bookmark-store";
+import { DATA_PATHS, QUERY_MODES, QUESTION_TYPES } from "@/constants";
 
 export function FillBlankPage() {
   const { examId, subjectId, chapterId } = useParams<{
@@ -21,7 +22,7 @@ export function FillBlankPage() {
   }>();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
-  const bookmarkOnly = searchParams.get("mode") === "bookmark";
+  const bookmarkOnly = searchParams.get("mode") === QUERY_MODES.BOOKMARK;
 
   const {
     questions,
@@ -41,7 +42,7 @@ export function FillBlankPage() {
 
   useEffect(() => {
     let cancelled = false;
-    fetch(`${import.meta.env.BASE_URL}data/${examId}/${subjectId}/${chapterId}_quiz.json`)
+    fetch(DATA_PATHS.CHAPTER_QUIZ(examId!, subjectId!, chapterId!))
       .then((res) => res.json())
       .then((data) => {
         if (!cancelled) setQuestions(data);
@@ -51,7 +52,7 @@ export function FillBlankPage() {
 
   const blankQuestions = useMemo(() => {
     let all = questions
-      .filter((q): q is FillInTheBlankQuestion => q.type === "fill_in_the_blank")
+      .filter((q): q is FillInTheBlankQuestion => q.type === QUESTION_TYPES.FILL_IN_THE_BLANK)
       .map((q) => getEditedQuestion(q));
     if (bookmarkOnly) {
       all = all.filter((q) => isBookmarked(q.id));

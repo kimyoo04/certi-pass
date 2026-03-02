@@ -6,6 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { MobileLayout } from "@/components/mobile-layout";
 import { useMockExamStore } from "@/stores/use-mock-exam-store";
+import { PASSING_SCORE_PERCENT } from "@/constants";
 
 export function MockExamResultPage() {
   const { examId } = useParams<{ examId: string; subjectId: string }>();
@@ -52,7 +53,7 @@ export function MockExamResultPage() {
     );
   }
 
-  const passed = percentage >= 60;
+  const passed = percentage >= PASSING_SCORE_PERCENT;
 
   return (
     <MobileLayout title="모의고사 결과" showBack>
@@ -71,7 +72,7 @@ export function MockExamResultPage() {
               variant={passed ? "default" : "destructive"}
               className="mt-3"
             >
-              {passed ? "합격 기준 통과" : "합격 기준 미달 (60%)"}
+              {passed ? "합격 기준 통과" : `합격 기준 미달 (${PASSING_SCORE_PERCENT}%)`}
             </Badge>
             <Progress value={percentage} className="mt-3 h-2" />
           </CardContent>

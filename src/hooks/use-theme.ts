@@ -1,8 +1,7 @@
 import { useEffect, useState } from "react";
+import { STORAGE_KEYS } from "@/constants";
 
 type Theme = "light" | "dark" | "system";
-
-const STORAGE_KEY = "certipass-theme";
 
 function getSystemTheme(): "light" | "dark" {
   return window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
@@ -15,7 +14,7 @@ function applyTheme(theme: Theme) {
 
 export function useTheme() {
   const [theme, setThemeState] = useState<Theme>(() => {
-    const stored = localStorage.getItem(STORAGE_KEY) as Theme | null;
+    const stored = localStorage.getItem(STORAGE_KEYS.THEME) as Theme | null;
     return stored ?? "system";
   });
 
@@ -31,7 +30,7 @@ export function useTheme() {
   }, [theme]);
 
   const setTheme = (next: Theme) => {
-    localStorage.setItem(STORAGE_KEY, next);
+    localStorage.setItem(STORAGE_KEYS.THEME, next);
     setThemeState(next);
   };
 

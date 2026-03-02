@@ -1,6 +1,7 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
 import type { Question } from "@/types";
+import { STORAGE_KEYS } from "@/constants";
 
 interface QuestionEditState {
   /** Per-question edit overlays keyed by question ID */
@@ -47,7 +48,7 @@ export const useQuestionEditStore = create<QuestionEditState>()(
       resetAll: () => set({ questionEdits: {} }),
     }),
     {
-      name: "certipass-question-edits",
+      name: STORAGE_KEYS.QUESTION_EDITS,
       partialize: (state) => ({ questionEdits: state.questionEdits }),
     }
   )

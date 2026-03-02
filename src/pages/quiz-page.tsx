@@ -13,6 +13,7 @@ import { fisherYatesShuffle } from "@/utils/shuffle";
 import { PencilIcon, BookmarkIcon, BookmarkCheckIcon } from "lucide-react";
 import { QuestionEditDialog } from "@/components/question-edit-dialog";
 import { useBookmarkStore } from "@/stores/use-bookmark-store";
+import { DATA_PATHS, QUERY_MODES, QUESTION_TYPES } from "@/constants";
 
 export function QuizPage() {
   const { examId, subjectId, chapterId } = useParams<{
@@ -23,8 +24,8 @@ export function QuizPage() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const mode = searchParams.get("mode");
-  const wrongOnly = mode === "wrong";
-  const bookmarkOnly = mode === "bookmark";
+  const wrongOnly = mode === QUERY_MODES.WRONG;
+  const bookmarkOnly = mode === QUERY_MODES.BOOKMARK;
 
   const {
     questions,
@@ -47,7 +48,7 @@ export function QuizPage() {
 
   useEffect(() => {
     let cancelled = false;
-    fetch(`${import.meta.env.BASE_URL}data/${examId}/${subjectId}/${chapterId}_quiz.json`)
+    fetch(DATA_PATHS.CHAPTER_QUIZ(examId!, subjectId!, chapterId!))
       .then((res) => res.json())
       .then((data) => {
         if (!cancelled) setQuestions(data);
@@ -58,7 +59,7 @@ export function QuizPage() {
   const mcQuestions = useMemo(() => {
     let all = questions
       .filter(
-        (q): q is MultipleChoiceQuestion => q.type === "multiple_choice"
+        (q): q is MultipleChoiceQuestion => q.type === QUESTION_TYPES.MULTIPLE_CHOICE
       )
       .map((q) => getEditedQuestion(q));
     if (wrongOnly) {
@@ -253,7 +254,7 @@ export function QuizPage() {
               className="flex-1"
               onClick={() =>
                 navigate(
-                  `/exam/${examId}/study/${subjectId}/${chapterId}/result?mode=${wrongOnly ? "wrong" : "quiz"}`
+                  `/exam/${examId}/study/${subjectId}/${chapterId}/result?mode=${wrongOnly ? QUERY_MODES.WRONG : QUERY_MODES.QUIZ}`
                 )
               }
             >
