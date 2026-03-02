@@ -90,8 +90,12 @@ export function StudyModePage() {
           </Card>
         )}
 
-        <div
-          className="flex items-center justify-between rounded-lg border p-3"
+        <button
+          type="button"
+          role="switch"
+          aria-checked={shuffleEnabled}
+          aria-label="문제 셔플"
+          className="flex w-full items-center justify-between rounded-lg border p-3 text-left cursor-pointer hover:bg-accent/50 transition-colors"
           onClick={toggleShuffle}
         >
           <div className="flex items-center gap-2">
@@ -102,7 +106,7 @@ export function StudyModePage() {
             </div>
           </div>
           <div
-            className={`relative h-6 w-11 rounded-full transition-colors ${
+            className={`relative h-6 w-11 shrink-0 rounded-full transition-colors ${
               shuffleEnabled ? "bg-primary" : "bg-muted"
             }`}
           >
@@ -112,7 +116,7 @@ export function StudyModePage() {
               }`}
             />
           </div>
-        </div>
+        </button>
 
         {progress && (progress.correctIds.length + progress.wrongIds.length) > 0 && (
           <div className="rounded-lg bg-muted p-3 text-sm">

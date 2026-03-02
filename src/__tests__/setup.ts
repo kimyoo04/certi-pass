@@ -4,6 +4,21 @@ import { cleanup } from "@testing-library/react";
 import { useQuizStore } from "@/stores/use-quiz-store";
 import { useMockExamStore } from "@/stores/use-mock-exam-store";
 
+// Mock window.matchMedia for jsdom (used by useTheme)
+Object.defineProperty(window, "matchMedia", {
+  writable: true,
+  value: vi.fn().mockImplementation((query: string) => ({
+    matches: false,
+    media: query,
+    onchange: null,
+    addListener: vi.fn(),
+    removeListener: vi.fn(),
+    addEventListener: vi.fn(),
+    removeEventListener: vi.fn(),
+    dispatchEvent: vi.fn(),
+  })),
+});
+
 beforeEach(() => {
   useQuizStore.setState({
     questions: [],

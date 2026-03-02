@@ -3,8 +3,15 @@ import { persist } from "zustand/middleware";
 import type { MultipleChoiceQuestion, MockExamResult } from "@/types";
 import { fisherYatesShuffle } from "@/utils/shuffle";
 
-const EXAM_DURATION_SECONDS = 50 * 60; // 50 minutes
-const QUESTIONS_PER_EXAM = 40;
+const SMALL_SUBJECTS = new Set(["s4", "s6"]);
+
+function getExamConfig(subjectId: string) {
+  const isSmall = SMALL_SUBJECTS.has(subjectId);
+  return {
+    questionsPerExam: isSmall ? 20 : 40,
+    durationSeconds: isSmall ? 25 * 60 : 50 * 60,
+  };
+}
 const MAX_HISTORY = 50;
 
 interface MockExamState {
@@ -42,7 +49,7 @@ export const useMockExamStore = create<MockExamState>()(
       questions: [],
       answers: {},
       currentIndex: 0,
-      remainingSeconds: EXAM_DURATION_SECONDS,
+      remainingSeconds: 50 * 60,
       isStarted: false,
       isFinished: false,
       examId: "",
@@ -51,15 +58,16 @@ export const useMockExamStore = create<MockExamState>()(
       examHistory: [],
 
       startExam: (examId, subjectId, subjectName, allQuestions) => {
+        const config = getExamConfig(subjectId);
         const mcQuestions = allQuestions.filter((q) => q.type === "multiple_choice");
         const shuffled = fisherYatesShuffle(mcQuestions, `${examId}-${subjectId}-${Date.now()}`);
-        const selected = shuffled.slice(0, QUESTIONS_PER_EXAM);
+        const selected = shuffled.slice(0, config.questionsPerExam);
 
         set({
           questions: selected,
           answers: {},
           currentIndex: 0,
-          remainingSeconds: EXAM_DURATION_SECONDS,
+          remainingSeconds: config.durationSeconds,
           isStarted: true,
           isFinished: false,
           examId,
@@ -83,6 +91,7 @@ export const useMockExamStore = create<MockExamState>()(
 
       finishExam: () => {
         const state = get();
+        const config = getExamConfig(state.subjectId);
         const correctCount = state.questions.filter(
           (q) => state.answers[q.id] === q.correctIndex
         ).length;
@@ -94,7 +103,7 @@ export const useMockExamStore = create<MockExamState>()(
           subjectName: state.subjectName,
           totalQuestions: state.questions.length,
           correctCount,
-          timeSpentSeconds: EXAM_DURATION_SECONDS - state.remainingSeconds,
+          timeSpentSeconds: config.durationSeconds - state.remainingSeconds,
           timestamp: Date.now(),
           answers: { ...state.answers },
           questionIds: state.questions.map((q) => q.id),
@@ -114,7 +123,7 @@ export const useMockExamStore = create<MockExamState>()(
           questions: [],
           answers: {},
           currentIndex: 0,
-          remainingSeconds: EXAM_DURATION_SECONDS,
+          remainingSeconds: 50 * 60,
           isStarted: false,
           isFinished: false,
           examId: "",
