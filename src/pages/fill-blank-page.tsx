@@ -3,12 +3,15 @@ import type { FillInTheBlankQuestion, Question } from '@/types'
 import { BookmarkCheckIcon, BookmarkIcon, PencilIcon } from 'lucide-react'
 import { useNavigate, useParams, useSearchParams } from 'react-router-dom'
 
+import { FetchErrorFallback } from '@/components/fetch-error-fallback'
+import { LoadingSpinner } from '@/components/loading-spinner'
 import { MobileLayout } from '@/components/mobile-layout'
 import { QuestionEditDialog } from '@/components/question-edit-dialog'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
 import { Progress } from '@/components/ui/progress'
+import { useCachedFetch } from '@/hooks/use-cached-fetch'
 import { useBookmarkStore } from '@/stores/use-bookmark-store'
 import { useQuestionEditStore } from '@/stores/use-question-edit-store'
 import { useQuizStore } from '@/stores/use-quiz-store'
@@ -41,17 +44,13 @@ export function FillBlankPage() {
 
   const chapterKey = `${examId}/${subjectId}/${chapterId}`
 
+  const { data: fetchedQuestions, loading: fetchLoading, error: fetchError, retry: fetchRetry } = useCachedFetch<Question[]>(
+    DATA_PATHS.CHAPTER_QUIZ(examId!, subjectId!, chapterId!),
+  )
+
   useEffect(() => {
-    let cancelled = false
-    fetch(DATA_PATHS.CHAPTER_QUIZ(examId!, subjectId!, chapterId!))
-      .then((res) => res.json())
-      .then((data) => {
-        if (!cancelled) setQuestions(data)
-      })
-    return () => {
-      cancelled = true
-    }
-  }, [examId, subjectId, chapterId, setQuestions])
+    if (fetchedQuestions) setQuestions(fetchedQuestions)
+  }, [fetchedQuestions, setQuestions])
 
   const blankQuestions = useMemo(() => {
     let all = questions
@@ -79,12 +78,18 @@ export function FillBlankPage() {
     onSwipeRight: () => safeIndex > 0 && goToQuestion(safeIndex - 1),
   })
 
-  if (questions.length === 0) {
+  if (fetchError) {
     return (
       <MobileLayout title="빈칸 뚫기" showBack>
-        <div className="flex items-center justify-center py-20">
-          <div role="status" aria-label="로딩 중" className="border-primary h-8 w-8 animate-spin rounded-full border-4 border-t-transparent" />
-        </div>
+        <FetchErrorFallback error={fetchError} onRetry={fetchRetry} />
+      </MobileLayout>
+    )
+  }
+
+  if (fetchLoading || questions.length === 0) {
+    return (
+      <MobileLayout title="빈칸 뚫기" showBack>
+        <LoadingSpinner />
       </MobileLayout>
     )
   }

@@ -2,6 +2,8 @@ import { useCallback, useEffect, useMemo, useState } from 'react'
 import { Tag, X } from 'lucide-react'
 import { useParams } from 'react-router-dom'
 
+import { FetchErrorFallback } from '@/components/fetch-error-fallback'
+import { LoadingSpinner } from '@/components/loading-spinner'
 import { MobileLayout } from '@/components/mobile-layout'
 import { TreeNodePicker } from '@/components/tree-node-picker'
 import { Badge } from '@/components/ui/badge'
@@ -13,6 +15,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
+import { useCachedFetch } from '@/hooks/use-cached-fetch'
 import { useClassifyStore } from '@/stores/use-classify-store'
 import { useTreeStore } from '@/stores/use-tree-store'
 import { flattenTree } from '@/utils/tree-utils'
@@ -38,8 +41,6 @@ export function ClassifyPage() {
   const { examId, subjectId } = useParams<{ examId: string; subjectId: string }>()
   const subject = allSubjects.find((s) => s.id === subjectId)
 
-  const [questions, setQuestions] = useState<QuizQuestion[]>([])
-  const [loading, setLoading] = useState(true)
   const [filter, setFilter] = useState<string>('all')
   const [pickerOpen, setPickerOpen] = useState(false)
   const [activeQuestionId, setActiveQuestionId] = useState<string | null>(null)
@@ -49,56 +50,39 @@ export function ClassifyPage() {
   const tree = useTreeStore((s) => s.getTree(subjectId!))
   const flatNodes = useMemo(() => flattenTree(tree), [tree])
 
-  // Load questions
-  useEffect(() => {
-    if (!examId || !subjectId) return
-    let cancelled = false
-    fetch(DATA_PATHS.ALL_QUIZ(examId!, subjectId!))
-      .then((res) => res.json())
-      .then((data: QuizQuestion[]) => {
-        if (!cancelled) {
-          setQuestions(data)
-          setLoading(false)
-        }
-      })
-      .catch(() => {
-        if (!cancelled) setLoading(false)
-      })
-    return () => {
-      cancelled = true
-    }
-  }, [examId, subjectId])
+  const { data: questions, loading, error: fetchError, retry: fetchRetry } = useCachedFetch<QuizQuestion[]>(
+    examId && subjectId ? DATA_PATHS.ALL_QUIZ(examId, subjectId) : null,
+  )
 
-  // Load default classifications
+  const { data: treeMapData } = useCachedFetch<{ classified: Record<string, string> }>(
+    examId && subjectId ? DATA_PATHS.QUESTION_TREE_MAP(examId, subjectId) : null,
+  )
+
   useEffect(() => {
-    if (!examId || !subjectId) return
-    fetch(DATA_PATHS.QUESTION_TREE_MAP(examId!, subjectId!))
-      .then((res) => res.json())
-      .then((data: { classified: Record<string, string> }) => {
-        if (data.classified) loadDefaults(data.classified)
-      })
-      .catch(() => {})
-  }, [examId, subjectId, loadDefaults])
+    if (treeMapData?.classified) loadDefaults(treeMapData.classified)
+  }, [treeMapData, loadDefaults])
+
+  const safeQuestions = useMemo(() => questions ?? [], [questions])
 
   // Stats
   const stats = useMemo(() => {
-    const total = questions.length
+    const total = safeQuestions.length
     let classified = 0
-    for (const q of questions) {
+    for (const q of safeQuestions) {
       if (overrides[q.id] || defaults[q.id]) classified++
     }
     return { total, classified, unclassified: total - classified }
-  }, [questions, overrides, defaults])
+  }, [safeQuestions, overrides, defaults])
 
   // Years for filter
   const years = useMemo(() => {
-    const yrs = new Set(questions.map((q) => q.year))
+    const yrs = new Set(safeQuestions.map((q) => q.year))
     return [...yrs].sort((a, b) => b - a)
-  }, [questions])
+  }, [safeQuestions])
 
   // Filtered questions
   const filteredQuestions = useMemo(() => {
-    let result = questions
+    let result = safeQuestions
     if (filter === 'unclassified') {
       result = result.filter((q) => !getNodeId(q.id))
     } else if (filter.startsWith('y')) {
@@ -106,7 +90,7 @@ export function ClassifyPage() {
       result = result.filter((q) => q.year === year)
     }
     return result
-  }, [questions, filter, getNodeId])
+  }, [safeQuestions, filter, getNodeId])
 
   const openPicker = useCallback((questionId: string) => {
     setActiveQuestionId(questionId)
@@ -132,12 +116,18 @@ export function ClassifyPage() {
     )
   }
 
+  if (fetchError) {
+    return (
+      <MobileLayout title={`${subject.name} 분류`} showBack>
+        <FetchErrorFallback error={fetchError} onRetry={fetchRetry} />
+      </MobileLayout>
+    )
+  }
+
   if (loading) {
     return (
       <MobileLayout title={`${subject.name} 분류`} showBack>
-        <div className="flex items-center justify-center py-20">
-          <div role="status" aria-label="로딩 중" className="border-primary h-8 w-8 animate-spin rounded-full border-4 border-t-transparent" />
-        </div>
+        <LoadingSpinner />
       </MobileLayout>
     )
   }

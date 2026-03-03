@@ -2,6 +2,7 @@ import { lazy, Suspense } from 'react'
 import { HashRouter, Route, Routes } from 'react-router-dom'
 
 import { ErrorBoundary } from '@/components/error-boundary'
+import { LoadingSpinner } from '@/components/loading-spinner'
 import { HomePage } from '@/pages/home-page'
 import { StudyModePage } from '@/pages/study-mode-page'
 import { SubjectPage } from '@/pages/subject-page'
@@ -31,20 +32,15 @@ const MockExamPage = lazy(() =>
 const MockExamResultPage = lazy(() =>
   import('@/pages/mock-exam-result-page').then((m) => ({ default: m.MockExamResultPage })),
 )
+const SearchPage = lazy(() =>
+  import('@/pages/search-page').then((m) => ({ default: m.SearchPage })),
+)
 const ContactPage = lazy(() =>
   import('@/pages/contact-page').then((m) => ({ default: m.ContactPage })),
 )
 const NotFoundPage = lazy(() =>
   import('@/pages/not-found-page').then((m) => ({ default: m.NotFoundPage })),
 )
-
-function LoadingSpinner() {
-  return (
-    <div className="flex items-center justify-center py-20">
-      <div role="status" aria-label="로딩 중" className="border-primary h-8 w-8 animate-spin rounded-full border-4 border-t-transparent" />
-    </div>
-  )
-}
 
 function App() {
   return (
@@ -58,6 +54,7 @@ function App() {
             <Route path="/exam/:examId/dashboard" element={<DashboardPage />} />
             <Route path="/exam/:examId/tree" element={<TreeSubjectListPage />} />
             <Route path="/exam/:examId/tree/:subjectId" element={<TreeViewPage />} />
+            <Route path="/exam/:examId/search" element={<SearchPage />} />
             <Route path="/exam/:examId/classify/:subjectId" element={<ClassifyPage />} />
             <Route path="/exam/:examId/mock/:subjectId" element={<MockExamPage />} />
             <Route path="/exam/:examId/mock/:subjectId/result" element={<MockExamResultPage />} />

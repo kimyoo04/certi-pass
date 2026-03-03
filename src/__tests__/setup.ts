@@ -3,6 +3,7 @@ import '@testing-library/jest-dom/vitest'
 import { cleanup } from '@testing-library/react'
 import { afterEach, beforeEach } from 'vitest'
 
+import { clearFetchCache } from '@/hooks/use-cached-fetch'
 import { useMockExamStore } from '@/stores/use-mock-exam-store'
 import { useQuizStore } from '@/stores/use-quiz-store'
 
@@ -45,6 +46,7 @@ beforeEach(() => {
     examHistory: [],
   })
   localStorage.clear()
+  clearFetchCache()
 })
 
 afterEach(() => {

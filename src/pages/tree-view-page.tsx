@@ -18,14 +18,16 @@ import {
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
+import { useCachedFetch } from '@/hooks/use-cached-fetch'
 import { useClassifyStore } from '@/stores/use-classify-store'
 import { useTreeStore } from '@/stores/use-tree-store'
 import { countNodes, filterTree, generateNodeId, getChildLevel } from '@/utils/tree-utils'
 import { allSubjects } from '@/data/exam-tree'
 import type { TreeNode } from '@/types/tree'
+import { DATA_PATHS } from '@/constants'
 
 export function TreeViewPage() {
-  const { subjectId } = useParams<{ subjectId: string }>()
+  const { examId, subjectId } = useParams<{ examId: string; subjectId: string }>()
   const subject = allSubjects.find((s) => s.id === subjectId)
 
   const { getTree, addNode, updateNode, deleteNode, resetSubject, customTrees } = useTreeStore()
@@ -38,16 +40,13 @@ export function TreeViewPage() {
     loadDefaults,
   } = useClassifyStore()
 
-  // Load classification defaults from JSON
+  const { data: treeMapData } = useCachedFetch<{ classified?: Record<string, string> }>(
+    examId && subjectId ? DATA_PATHS.QUESTION_TREE_MAP(examId, subjectId) : null,
+  )
+
   useEffect(() => {
-    if (!subjectId) return
-    fetch(`${import.meta.env.BASE_URL}data/realtor/${subjectId}/question_tree_map.json`)
-      .then((res) => res.json())
-      .then((data: { classified?: Record<string, string> }) => {
-        if (data.classified) loadDefaults(data.classified)
-      })
-      .catch(() => {})
-  }, [subjectId, loadDefaults])
+    if (treeMapData?.classified) loadDefaults(treeMapData.classified)
+  }, [treeMapData, loadDefaults])
 
   // Compute per-node question counts from classification data
   const questionCounts = useMemo(() => {

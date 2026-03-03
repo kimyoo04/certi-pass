@@ -1,11 +1,14 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useMemo } from 'react'
 import type { Curriculum } from '@/types'
 import { useNavigate, useParams } from 'react-router-dom'
 
+import { FetchErrorFallback } from '@/components/fetch-error-fallback'
+import { LoadingSpinner } from '@/components/loading-spinner'
 import { MobileLayout } from '@/components/mobile-layout'
 import { Badge } from '@/components/ui/badge'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Progress } from '@/components/ui/progress'
+import { useCachedFetch } from '@/hooks/use-cached-fetch'
 import { useMockExamStore } from '@/stores/use-mock-exam-store'
 import { useQuizStore } from '@/stores/use-quiz-store'
 import { aggregateBySubject, getOverallStats, getWeakAreas } from '@/utils/stats-utils'
@@ -14,15 +17,12 @@ import { DATA_PATHS } from '@/constants'
 export function DashboardPage() {
   const { examId } = useParams<{ examId: string }>()
   const navigate = useNavigate()
-  const [curriculum, setCurriculum] = useState<Curriculum | null>(null)
   const chapterProgress = useQuizStore((s) => s.chapterProgress)
   const examHistory = useMockExamStore((s) => s.examHistory)
 
-  useEffect(() => {
-    fetch(DATA_PATHS.CURRICULUM(examId!))
-      .then((res) => res.json())
-      .then(setCurriculum)
-  }, [examId])
+  const { data: curriculum, loading, error, retry } = useCachedFetch<Curriculum>(
+    DATA_PATHS.CURRICULUM(examId!),
+  )
 
   const subjectStats = useMemo(
     () => (curriculum ? aggregateBySubject(chapterProgress, curriculum) : []),
@@ -41,12 +41,18 @@ export function DashboardPage() {
     [examHistory, examId],
   )
 
-  if (!curriculum) {
+  if (error) {
     return (
       <MobileLayout title="학습 현황" showBack>
-        <div className="flex items-center justify-center py-20">
-          <div role="status" aria-label="로딩 중" className="border-primary h-8 w-8 animate-spin rounded-full border-4 border-t-transparent" />
-        </div>
+        <FetchErrorFallback error={error} onRetry={retry} />
+      </MobileLayout>
+    )
+  }
+
+  if (loading || !curriculum) {
+    return (
+      <MobileLayout title="학습 현황" showBack>
+        <LoadingSpinner />
       </MobileLayout>
     )
   }

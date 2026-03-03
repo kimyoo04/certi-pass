@@ -8,6 +8,10 @@ export const ROUTES = {
   blank: '/exam/:examId/study/:subjectId/:chapterId/blank',
   result: '/exam/:examId/study/:subjectId/:chapterId/result',
   studyMode: '/exam/:examId/study/:subjectId/:chapterId',
+  mockExam: '/exam/:examId/mock/:subjectId',
+  mockExamResult: '/exam/:examId/mock/:subjectId/result',
+  treeSubjectList: '/exam/:examId/tree',
+  treeView: '/exam/:examId/tree/:subjectId',
 } as const
 
 export const TEST_PARAMS = {
@@ -22,6 +26,22 @@ export function basePath() {
 
 export function chapterKey() {
   return `${TEST_PARAMS.examId}/${TEST_PARAMS.subjectId}/${TEST_PARAMS.chapterId}`
+}
+
+export function mockExamPath(subjectId = 's1') {
+  return `/exam/${TEST_PARAMS.examId}/mock/${subjectId}`
+}
+
+export function mockExamResultPath(subjectId = 's1') {
+  return `/exam/${TEST_PARAMS.examId}/mock/${subjectId}/result`
+}
+
+export function treeSubjectListPath() {
+  return `/exam/${TEST_PARAMS.examId}/tree`
+}
+
+export function treeViewPath(subjectId = 's1') {
+  return `/exam/${TEST_PARAMS.examId}/tree/${subjectId}`
 }
 
 interface RenderWithRouteOptions {

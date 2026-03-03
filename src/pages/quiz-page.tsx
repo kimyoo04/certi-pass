@@ -3,12 +3,15 @@ import type { MultipleChoiceQuestion, Question } from '@/types'
 import { BookmarkCheckIcon, BookmarkIcon, PencilIcon } from 'lucide-react'
 import { useNavigate, useParams, useSearchParams } from 'react-router-dom'
 
+import { FetchErrorFallback } from '@/components/fetch-error-fallback'
+import { LoadingSpinner } from '@/components/loading-spinner'
 import { MobileLayout } from '@/components/mobile-layout'
 import { QuestionEditDialog } from '@/components/question-edit-dialog'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
 import { Progress } from '@/components/ui/progress'
+import { useCachedFetch } from '@/hooks/use-cached-fetch'
 import { useBookmarkStore } from '@/stores/use-bookmark-store'
 import { useQuestionEditStore } from '@/stores/use-question-edit-store'
 import { useQuizStore } from '@/stores/use-quiz-store'
@@ -47,17 +50,13 @@ export function QuizPage() {
 
   const chapterKey = `${examId}/${subjectId}/${chapterId}`
 
+  const { data: fetchedQuestions, loading: fetchLoading, error: fetchError, retry: fetchRetry } = useCachedFetch<Question[]>(
+    DATA_PATHS.CHAPTER_QUIZ(examId!, subjectId!, chapterId!),
+  )
+
   useEffect(() => {
-    let cancelled = false
-    fetch(DATA_PATHS.CHAPTER_QUIZ(examId!, subjectId!, chapterId!))
-      .then((res) => res.json())
-      .then((data) => {
-        if (!cancelled) setQuestions(data)
-      })
-    return () => {
-      cancelled = true
-    }
-  }, [examId, subjectId, chapterId, setQuestions])
+    if (fetchedQuestions) setQuestions(fetchedQuestions)
+  }, [fetchedQuestions, setQuestions])
 
   const mcQuestions = useMemo(() => {
     let all = questions
@@ -104,16 +103,37 @@ export function QuizPage() {
     onSwipeRight: () => safeIndex > 0 && goToQuestion(safeIndex - 1),
   })
 
+  if (fetchError) {
+    return (
+      <MobileLayout
+        title={wrongOnly ? '오답 풀기' : bookmarkOnly ? '북마크 문제' : '기출 문제'}
+        showBack
+      >
+        <FetchErrorFallback error={fetchError} onRetry={fetchRetry} />
+      </MobileLayout>
+    )
+  }
+
+  if (fetchLoading) {
+    return (
+      <MobileLayout
+        title={wrongOnly ? '오답 풀기' : bookmarkOnly ? '북마크 문제' : '기출 문제'}
+        showBack
+      >
+        <LoadingSpinner />
+      </MobileLayout>
+    )
+  }
+
   if (mcQuestions.length === 0) {
-    const isLoading = questions.length === 0
     return (
       <MobileLayout
         title={wrongOnly ? '오답 풀기' : bookmarkOnly ? '북마크 문제' : '기출 문제'}
         showBack
       >
         <div className="flex flex-col items-center justify-center py-20 text-center">
-          {isLoading ? (
-            <div role="status" aria-label="로딩 중" className="border-primary h-8 w-8 animate-spin rounded-full border-4 border-t-transparent" />
+          {questions.length === 0 ? (
+            <LoadingSpinner />
           ) : (
             <>
               <p className="mb-3 text-4xl">{bookmarkOnly ? '📑' : '🎉'}</p>

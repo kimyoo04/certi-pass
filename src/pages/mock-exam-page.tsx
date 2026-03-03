@@ -1,19 +1,22 @@
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect } from 'react'
 import type { Curriculum, MultipleChoiceQuestion } from '@/types'
 import { useNavigate, useParams } from 'react-router-dom'
 
 import { ExamTimer } from '@/components/exam-timer'
+import { FetchErrorFallback } from '@/components/fetch-error-fallback'
+import { LoadingSpinner } from '@/components/loading-spinner'
 import { MobileLayout } from '@/components/mobile-layout'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
+import { useCachedFetch } from '@/hooks/use-cached-fetch'
 import { useMockExamStore } from '@/stores/use-mock-exam-store'
+import { useSwipe } from '@/hooks/use-swipe'
 import { DATA_PATHS } from '@/constants'
 
 export function MockExamPage() {
   const { examId, subjectId } = useParams<{ examId: string; subjectId: string }>()
   const navigate = useNavigate()
-  const [loading, setLoading] = useState(true)
 
   const {
     questions,
@@ -28,30 +31,24 @@ export function MockExamPage() {
     finishExam,
   } = useMockExamStore()
 
-  // Load questions and start exam
+  const shouldFetch = !isStarted && !isFinished
+  const { data: allQuestions, loading: quizLoading, error: quizError, retry: quizRetry } = useCachedFetch<MultipleChoiceQuestion[]>(
+    shouldFetch ? DATA_PATHS.ALL_QUIZ(examId!, subjectId!) : null,
+  )
+  const { data: curriculum, loading: currLoading, error: currError, retry: currRetry } = useCachedFetch<Curriculum>(
+    shouldFetch ? DATA_PATHS.CURRICULUM(examId!) : null,
+  )
+
+  const loading = shouldFetch && (quizLoading || currLoading)
+  const fetchError = quizError || currError
+  const fetchRetry = () => { quizRetry(); currRetry() }
+
   useEffect(() => {
-    if (isStarted || isFinished) {
-      setLoading(false)
-      return
-    }
-
-    const loadAndStart = async () => {
-      try {
-        const [quizRes, currRes] = await Promise.all([
-          fetch(DATA_PATHS.ALL_QUIZ(examId!, subjectId!)),
-          fetch(DATA_PATHS.CURRICULUM(examId!)),
-        ])
-        const allQuestions: MultipleChoiceQuestion[] = await quizRes.json()
-        const curriculum: Curriculum = await currRes.json()
-        const subject = curriculum.subjects.find((s) => s.id === subjectId)
-        startExam(examId!, subjectId!, subject?.name ?? subjectId!, allQuestions)
-      } finally {
-        setLoading(false)
-      }
-    }
-
-    loadAndStart()
-  }, [examId, subjectId, isStarted, isFinished, startExam])
+    if (isStarted || isFinished) return
+    if (!allQuestions || !curriculum) return
+    const subject = curriculum.subjects.find((s) => s.id === subjectId)
+    startExam(examId!, subjectId!, subject?.name ?? subjectId!, allQuestions)
+  }, [allQuestions, curriculum, isStarted, isFinished, examId, subjectId, startExam])
 
   // Auto-submit on timer expiry
   useEffect(() => {
@@ -73,12 +70,25 @@ export function MockExamPage() {
     [selectAnswer],
   )
 
+  const isLast = currentIndex === questions.length - 1
+
+  const swipeHandlers = useSwipe({
+    onSwipeLeft: () => !isLast && goToQuestion(currentIndex + 1),
+    onSwipeRight: () => currentIndex > 0 && goToQuestion(currentIndex - 1),
+  })
+
+  if (fetchError) {
+    return (
+      <MobileLayout title="모의고사" showBack>
+        <FetchErrorFallback error={fetchError} onRetry={fetchRetry} />
+      </MobileLayout>
+    )
+  }
+
   if (loading) {
     return (
       <MobileLayout title="모의고사" showBack>
-        <div className="flex items-center justify-center py-20">
-          <div role="status" aria-label="로딩 중" className="border-primary h-8 w-8 animate-spin rounded-full border-4 border-t-transparent" />
-        </div>
+        <LoadingSpinner />
       </MobileLayout>
     )
   }
@@ -110,7 +120,7 @@ export function MockExamPage() {
       }
       showBack
     >
-      <div className="space-y-3">
+      <div className="space-y-3" {...swipeHandlers}>
         {/* Question navigator grid */}
         <div className="grid grid-cols-8 gap-1">
           {questions.map((q, i) => {

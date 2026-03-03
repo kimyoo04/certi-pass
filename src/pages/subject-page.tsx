@@ -1,21 +1,27 @@
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import type { Curriculum } from '@/types'
-import { ChevronDownIcon } from 'lucide-react'
+import { ChevronDownIcon, SearchIcon } from 'lucide-react'
 import { useNavigate, useParams } from 'react-router-dom'
 
+import { FetchErrorFallback } from '@/components/fetch-error-fallback'
+import { LoadingSpinner } from '@/components/loading-spinner'
 import { MobileLayout } from '@/components/mobile-layout'
 import { Badge } from '@/components/ui/badge'
 import { Card, CardHeader, CardTitle } from '@/components/ui/card'
 import { Progress } from '@/components/ui/progress'
+import { useCachedFetch } from '@/hooks/use-cached-fetch'
 import { useQuizStore } from '@/stores/use-quiz-store'
 import { DATA_PATHS, getExamConfig } from '@/constants'
 
 export function SubjectPage() {
   const { examId } = useParams<{ examId: string }>()
-  const [curriculum, setCurriculum] = useState<Curriculum | null>(null)
   const navigate = useNavigate()
   const chapterProgress = useQuizStore((s) => s.chapterProgress)
   const [expandedSubjects, setExpandedSubjects] = useState<Set<string>>(new Set())
+
+  const { data: curriculum, loading, error, retry } = useCachedFetch<Curriculum>(
+    DATA_PATHS.CURRICULUM(examId!),
+  )
 
   const toggleSubject = (subjectId: string) => {
     setExpandedSubjects((prev) => {
@@ -29,18 +35,18 @@ export function SubjectPage() {
     })
   }
 
-  useEffect(() => {
-    fetch(DATA_PATHS.CURRICULUM(examId!))
-      .then((res) => res.json())
-      .then(setCurriculum)
-  }, [examId])
-
-  if (!curriculum) {
+  if (error) {
     return (
-      <MobileLayout title="로딩 중..." showBack>
-        <div className="flex items-center justify-center py-20">
-          <div role="status" aria-label="로딩 중" className="border-primary h-8 w-8 animate-spin rounded-full border-4 border-t-transparent" />
-        </div>
+      <MobileLayout title="과목 선택" showBack>
+        <FetchErrorFallback error={error} onRetry={retry} />
+      </MobileLayout>
+    )
+  }
+
+  if (loading || !curriculum) {
+    return (
+      <MobileLayout title="과목 선택" showBack>
+        <LoadingSpinner />
       </MobileLayout>
     )
   }
@@ -79,6 +85,24 @@ export function SubjectPage() {
               <div>
                 <CardTitle className="text-sm font-medium">개념 트리</CardTitle>
                 <p className="text-muted-foreground text-xs">과목별 핵심 개념을 트리 구조로 학습</p>
+              </div>
+            </div>
+          </CardHeader>
+        </Card>
+
+        <Card
+          role="link"
+          tabIndex={0}
+          className="border-primary/30 bg-primary/5 hover:border-primary/50 cursor-pointer transition-colors"
+          onClick={() => navigate(`/exam/${examId}/search`)}
+          onKeyDown={(e) => (e.key === 'Enter' || e.key === ' ') && (e.preventDefault(), navigate(`/exam/${examId}/search`))}
+        >
+          <CardHeader className="p-3">
+            <div className="flex items-center gap-2">
+              <SearchIcon className="text-primary h-5 w-5" />
+              <div>
+                <CardTitle className="text-sm font-medium">문제 검색</CardTitle>
+                <p className="text-muted-foreground text-xs">키워드로 문제를 검색하고 필터링</p>
               </div>
             </div>
           </CardHeader>

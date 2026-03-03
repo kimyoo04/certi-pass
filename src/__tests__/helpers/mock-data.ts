@@ -1,5 +1,6 @@
 import type {
   ChapterProgress,
+  Curriculum,
   FillInTheBlankQuestion,
   MultipleChoiceQuestion,
   Question,
@@ -104,8 +105,43 @@ export const PROGRESS_EMPTY: ChapterProgress = {
   totalBlank: 0,
 }
 
+export const MOCK_CURRICULUM: Curriculum = {
+  examId: 'realtor',
+  subjects: [
+    {
+      id: 's1',
+      name: '부동산학개론',
+      chapters: [
+        { id: 'ch1', name: '부동산의 개념' },
+        { id: 'ch2', name: '부동산의 특성' },
+      ],
+    },
+    {
+      id: 's2',
+      name: '민법 및 민사특별법',
+      chapters: [{ id: 'ch1', name: '총칙' }],
+    },
+  ],
+}
+
 export function mockFetch(data: unknown = ALL_QUESTIONS) {
   return vi.spyOn(globalThis, 'fetch').mockResolvedValue({
     json: () => Promise.resolve(data),
   } as Response)
+}
+
+export function mockFetchMultiple(responses: Record<string, unknown>) {
+  return vi.spyOn(globalThis, 'fetch').mockImplementation((url) => {
+    const urlStr = typeof url === 'string' ? url : url.toString()
+    for (const [pattern, data] of Object.entries(responses)) {
+      if (urlStr.includes(pattern)) {
+        return Promise.resolve({
+          json: () => Promise.resolve(data),
+        } as Response)
+      }
+    }
+    return Promise.resolve({
+      json: () => Promise.resolve([]),
+    } as Response)
+  })
 }
