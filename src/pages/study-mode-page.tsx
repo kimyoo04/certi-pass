@@ -1,8 +1,9 @@
+import { ChevronRightIcon } from 'lucide-react'
 import { useNavigate, useParams } from 'react-router-dom'
 
 import { MobileLayout } from '@/components/mobile-layout'
 import { Badge } from '@/components/ui/badge'
-import { Card, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { Card, CardContent } from '@/components/ui/card'
 import { useBookmarkStore } from '@/stores/use-bookmark-store'
 import { useQuizStore } from '@/stores/use-quiz-store'
 import { QUERY_MODES } from '@/constants'
@@ -23,102 +24,107 @@ export function StudyModePage() {
   const wrongCount = progress?.wrongIds.length ?? 0
   const bookmarkCount = useBookmarkStore((s) => s.getBookmarkedIds().length)
 
-  const modes = [
+  const primaryModes = [
     {
       id: 'blank',
       title: '빈칸 뚫기',
-      description: '핵심 키워드를 빈칸으로 가린 문장을 학습합니다',
+      description: '핵심 키워드를 빈칸으로 가린 문장 학습',
       icon: '📝',
       path: `${basePath}/blank`,
     },
     {
       id: 'quiz',
       title: '기출 문제 풀기',
-      description: '1문제씩 객관식 기출문제를 풀어봅니다',
+      description: '1문제씩 객관식 기출문제 풀기',
       icon: '📋',
       path: `${basePath}/quiz`,
-    },
-    {
-      id: 'tree',
-      title: '개념 트리 보기',
-      description: '이 과목의 핵심 개념을 트리 구조로 확인합니다',
-      icon: '📚',
-      path: `/exam/${examId}/tree/${subjectId}`,
     },
   ]
 
   return (
     <MobileLayout title="학습 모드 선택" showBack>
       <div className="space-y-3">
-        {modes.map((mode) => (
-          <Card
-            key={mode.id}
-            role="link"
-            tabIndex={0}
-            className="hover:border-primary/50 cursor-pointer transition-colors"
-            onClick={() => navigate(mode.path)}
-            onKeyDown={(e) =>
-              (e.key === 'Enter' || e.key === ' ') && (e.preventDefault(), navigate(mode.path))
-            }
-          >
-            <CardHeader className="p-4">
-              <div className="flex items-center gap-3">
-                <span className="text-2xl">{mode.icon}</span>
-                <div>
-                  <CardTitle className="text-base">{mode.title}</CardTitle>
-                  <CardDescription className="text-sm">{mode.description}</CardDescription>
-                </div>
-              </div>
-            </CardHeader>
-          </Card>
-        ))}
+        {/* Primary modes: 2-column grid */}
+        <div className="grid grid-cols-2 gap-3">
+          {primaryModes.map((mode) => (
+            <Card
+              key={mode.id}
+              role="link"
+              tabIndex={0}
+              className="hover:border-primary/50 cursor-pointer transition-colors"
+              onClick={() => navigate(mode.path)}
+              onKeyDown={(e) =>
+                (e.key === 'Enter' || e.key === ' ') && (e.preventDefault(), navigate(mode.path))
+              }
+            >
+              <CardContent className="flex flex-col items-center gap-2 p-5 text-center">
+                <span className="text-3xl">{mode.icon}</span>
+                <p className="text-sm font-semibold">{mode.title}</p>
+                <p className="text-muted-foreground text-[11px] leading-snug">{mode.description}</p>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
 
-        {wrongCount > 0 && (
-          <Card
-            className="cursor-pointer border-red-200 transition-colors hover:border-red-400 dark:border-red-900"
-            onClick={() => navigate(`${basePath}/quiz?mode=${QUERY_MODES.WRONG}`)}
-          >
-            <CardHeader className="p-4">
-              <div className="flex items-center gap-3">
-                <span className="text-2xl">🔄</span>
-                <div className="flex-1">
-                  <div className="flex items-center gap-2">
-                    <CardTitle className="text-base">오답만 풀기</CardTitle>
-                    <Badge variant="destructive" className="text-xs">
-                      {wrongCount}문제
-                    </Badge>
-                  </div>
-                  <CardDescription className="text-sm">틀린 문제만 다시 풀어봅니다</CardDescription>
-                </div>
-              </div>
-            </CardHeader>
-          </Card>
+        {/* Secondary mode: full-width compact row */}
+        <Card
+          role="link"
+          tabIndex={0}
+          className="hover:border-primary/50 cursor-pointer transition-colors"
+          onClick={() => navigate(`/exam/${examId}/tree/${subjectId}`)}
+          onKeyDown={(e) =>
+            (e.key === 'Enter' || e.key === ' ') &&
+            (e.preventDefault(), navigate(`/exam/${examId}/tree/${subjectId}`))
+          }
+        >
+          <CardContent className="flex items-center gap-3 p-4">
+            <span className="text-2xl">📚</span>
+            <div className="flex-1">
+              <p className="text-sm font-semibold">개념 트리 보기</p>
+              <p className="text-muted-foreground text-xs">핵심 개념을 트리 구조로 확인</p>
+            </div>
+            <ChevronRightIcon className="text-muted-foreground h-4 w-4 shrink-0" />
+          </CardContent>
+        </Card>
+
+        {/* Conditional modes */}
+        {(wrongCount > 0 || bookmarkCount > 0) && (
+          <div className="space-y-2">
+            {wrongCount > 0 && (
+              <Card
+                className="cursor-pointer border-red-200 transition-colors hover:border-red-400 dark:border-red-900"
+                onClick={() => navigate(`${basePath}/quiz?mode=${QUERY_MODES.WRONG}`)}
+              >
+                <CardContent className="flex items-center gap-3 p-3">
+                  <span className="text-xl">🔄</span>
+                  <p className="text-sm font-medium">오답만 풀기</p>
+                  <Badge variant="destructive" className="ml-1 text-xs">
+                    {wrongCount}문제
+                  </Badge>
+                  <ChevronRightIcon className="text-muted-foreground ml-auto h-4 w-4 shrink-0" />
+                </CardContent>
+              </Card>
+            )}
+
+            {bookmarkCount > 0 && (
+              <Card
+                className="border-primary/30 hover:border-primary/60 cursor-pointer transition-colors"
+                onClick={() => navigate(`${basePath}/quiz?mode=${QUERY_MODES.BOOKMARK}`)}
+              >
+                <CardContent className="flex items-center gap-3 p-3">
+                  <span className="text-xl">🔖</span>
+                  <p className="text-sm font-medium">북마크만 풀기</p>
+                  <Badge variant="secondary" className="ml-1 text-xs">
+                    {bookmarkCount}문제
+                  </Badge>
+                  <ChevronRightIcon className="text-muted-foreground ml-auto h-4 w-4 shrink-0" />
+                </CardContent>
+              </Card>
+            )}
+          </div>
         )}
 
-        {bookmarkCount > 0 && (
-          <Card
-            className="border-primary/30 hover:border-primary/60 cursor-pointer transition-colors"
-            onClick={() => navigate(`${basePath}/quiz?mode=${QUERY_MODES.BOOKMARK}`)}
-          >
-            <CardHeader className="p-4">
-              <div className="flex items-center gap-3">
-                <span className="text-2xl">🔖</span>
-                <div className="flex-1">
-                  <div className="flex items-center gap-2">
-                    <CardTitle className="text-base">북마크만 풀기</CardTitle>
-                    <Badge variant="secondary" className="text-xs">
-                      {bookmarkCount}문제
-                    </Badge>
-                  </div>
-                  <CardDescription className="text-sm">
-                    북마크한 문제만 다시 풀어봅니다
-                  </CardDescription>
-                </div>
-              </div>
-            </CardHeader>
-          </Card>
-        )}
-
+        {/* Shuffle toggle */}
         <button
           type="button"
           role="switch"
@@ -147,6 +153,7 @@ export function StudyModePage() {
           </div>
         </button>
 
+        {/* Progress summary */}
         {progress && progress.correctIds.length + progress.wrongIds.length > 0 && (
           <div className="bg-muted rounded-lg p-3 text-sm">
             <p className="mb-1 font-medium">학습 현황</p>
