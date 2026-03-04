@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useMemo, useState } from 'react'
 import type { Flashcard, FlashcardDeck } from '@/types'
 import { CheckIcon, DownloadIcon, PencilIcon, PlusIcon, Trash2Icon, XIcon } from 'lucide-react'
 import { useParams } from 'react-router-dom'
@@ -12,6 +12,97 @@ import { Card, CardContent } from '@/components/ui/card'
 import { useCachedFetch } from '@/hooks/use-cached-fetch'
 import { useFlashcardStore } from '@/stores/use-flashcard-store'
 import { DATA_PATHS } from '@/constants'
+
+const NEW_CATEGORY_VALUE = '__new__'
+
+function CategorySelect({
+  value,
+  onChange,
+  categories,
+}: {
+  value: string
+  onChange: (v: string) => void
+  categories: string[]
+}) {
+  const [addingNew, setAddingNew] = useState(!categories.includes(value) && value !== '')
+  const [newInput, setNewInput] = useState(addingNew ? value : '')
+
+  const handleSelectChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    if (e.target.value === NEW_CATEGORY_VALUE) {
+      setAddingNew(true)
+      setNewInput('')
+      onChange('')
+    } else {
+      setAddingNew(false)
+      onChange(e.target.value)
+    }
+  }
+
+  const handleConfirmNew = () => {
+    const trimmed = newInput.trim()
+    if (!trimmed) return
+    onChange(trimmed)
+    setAddingNew(false)
+  }
+
+  const handleCancelNew = () => {
+    setAddingNew(false)
+    setNewInput('')
+    onChange('')
+  }
+
+  if (addingNew) {
+    return (
+      <div className="flex gap-2">
+        <input
+          type="text"
+          value={newInput}
+          onChange={(e) => setNewInput(e.target.value)}
+          placeholder="새 카테고리 이름"
+          autoFocus
+          onKeyDown={(e) => {
+            if (e.key === 'Enter') { e.preventDefault(); handleConfirmNew() }
+            if (e.key === 'Escape') handleCancelNew()
+          }}
+          className="flex-1 rounded-md border bg-background px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-ring"
+        />
+        <button
+          type="button"
+          onClick={handleConfirmNew}
+          disabled={!newInput.trim()}
+          className="rounded-md border px-3 py-2 text-sm font-medium hover:bg-accent disabled:opacity-40 transition-colors"
+          aria-label="카테고리 확인"
+        >
+          <CheckIcon className="h-4 w-4" />
+        </button>
+        <button
+          type="button"
+          onClick={handleCancelNew}
+          className="rounded-md border px-3 py-2 text-sm hover:bg-accent transition-colors"
+          aria-label="취소"
+        >
+          <XIcon className="h-4 w-4" />
+        </button>
+      </div>
+    )
+  }
+
+  return (
+    <select
+      value={value}
+      onChange={handleSelectChange}
+      className="w-full rounded-md border bg-background px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-ring"
+    >
+      <option value="">카테고리 없음</option>
+      {categories.map((cat) => (
+        <option key={cat} value={cat}>
+          {cat}
+        </option>
+      ))}
+      <option value={NEW_CATEGORY_VALUE}>+ 새 카테고리 추가</option>
+    </select>
+  )
+}
 
 export function FlashcardEditorPage() {
   const { examId, subjectId } = useParams<{ examId: string; subjectId: string }>()
@@ -31,6 +122,14 @@ export function FlashcardEditorPage() {
     error,
     retry,
   } = useCachedFetch<FlashcardDeck>(DATA_PATHS.FLASHCARDS(examId!, subjectId!))
+
+  const categories = useMemo<string[]>(() => {
+    if (!deck) return []
+    const all = [...deck.cards, ...customCards]
+      .map((c) => c.category)
+      .filter((c): c is string => !!c)
+    return [...new Set(all)].sort()
+  }, [deck, customCards])
 
   const handleAdd = () => {
     const trimmedTerm = term.trim()
@@ -109,16 +208,8 @@ export function FlashcardEditorPage() {
               />
             </div>
             <div className="space-y-2">
-              <label className="text-xs text-muted-foreground font-medium">
-                카테고리 (선택)
-              </label>
-              <input
-                type="text"
-                value={category}
-                onChange={(e) => setCategory(e.target.value)}
-                placeholder="예: 토지의 특성"
-                className="w-full rounded-md border bg-background px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-ring"
-              />
+              <label className="text-xs text-muted-foreground font-medium">카테고리 (선택)</label>
+              <CategorySelect value={category} onChange={setCategory} categories={categories} />
             </div>
             <Button
               onClick={handleAdd}
@@ -138,7 +229,11 @@ export function FlashcardEditorPage() {
               내 카드 {customCards.length}개가 추가되었습니다
             </p>
             <p className="text-blue-600 dark:text-blue-500 text-xs">
-              JSON을 내보내서 <code className="font-mono">public/data/{examId}/{subjectId}/flashcards.json</code> 파일로 교체하면 영구 저장됩니다.
+              JSON을 내보내서{' '}
+              <code className="font-mono">
+                public/data/{examId}/{subjectId}/flashcards.json
+              </code>{' '}
+              파일로 교체하면 영구 저장됩니다.
             </p>
             <Button variant="outline" size="sm" onClick={handleExport} className="w-full mt-1">
               <DownloadIcon className="h-4 w-4 mr-1.5" />
@@ -157,6 +252,7 @@ export function FlashcardEditorPage() {
               <CustomCardItem
                 key={card.id}
                 card={card}
+                categories={categories}
                 onUpdate={(patch) => updateCard(examId!, subjectId!, card.id, patch)}
                 onDelete={() => deleteCard(examId!, subjectId!, card.id)}
               />
@@ -180,10 +276,12 @@ export function FlashcardEditorPage() {
 
 function CustomCardItem({
   card,
+  categories,
   onUpdate,
   onDelete,
 }: {
   card: Flashcard
+  categories: string[]
   onUpdate: (patch: Omit<Flashcard, 'id'>) => void
   onDelete: () => void
 }) {
@@ -226,15 +324,14 @@ function CustomCardItem({
             rows={3}
             className="w-full rounded-md border bg-background px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-ring resize-none"
           />
-          <input
-            type="text"
-            value={category}
-            onChange={(e) => setCategory(e.target.value)}
-            placeholder="카테고리 (선택)"
-            className="w-full rounded-md border bg-background px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-ring"
-          />
+          <CategorySelect value={category} onChange={setCategory} categories={categories} />
           <div className="flex gap-2">
-            <Button size="sm" onClick={handleSave} disabled={!term.trim() || !definition.trim()} className="flex-1">
+            <Button
+              size="sm"
+              onClick={handleSave}
+              disabled={!term.trim() || !definition.trim()}
+              className="flex-1"
+            >
               <CheckIcon className="h-3.5 w-3.5 mr-1" />
               저장
             </Button>
