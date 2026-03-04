@@ -1,23 +1,108 @@
-import { useMemo } from 'react'
+import { useMemo, useState } from 'react'
 import type { Curriculum } from '@/types'
 import { useNavigate, useParams } from 'react-router-dom'
 
+import { ActivityHeatmap } from '@/components/activity-heatmap'
 import { FetchErrorFallback } from '@/components/fetch-error-fallback'
 import { LoadingSpinner } from '@/components/loading-spinner'
 import { MobileLayout } from '@/components/mobile-layout'
 import { Badge } from '@/components/ui/badge'
+import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Input } from '@/components/ui/input'
 import { Progress } from '@/components/ui/progress'
 import { useMockExamStore } from '@/stores/use-mock-exam-store'
 import { useQuizStore } from '@/stores/use-quiz-store'
+import { useSettingsStore } from '@/stores/use-settings-store'
 import { useCachedFetch } from '@/hooks/use-cached-fetch'
 import { aggregateBySubject, getOverallStats, getWeakAreas } from '@/utils/stats-utils'
 import { DATA_PATHS } from '@/constants'
+
+function DdayCard() {
+  const { examDate, setExamDate } = useSettingsStore()
+  const [editing, setEditing] = useState(false)
+  const [inputValue, setInputValue] = useState('')
+
+  const dday = useMemo(() => {
+    if (!examDate) return null
+    const today = new Date()
+    today.setHours(0, 0, 0, 0)
+    const exam = new Date(examDate)
+    exam.setHours(0, 0, 0, 0)
+    return Math.ceil((exam.getTime() - today.getTime()) / (1000 * 60 * 60 * 24))
+  }, [examDate])
+
+  const handleSave = () => {
+    if (inputValue) {
+      setExamDate(inputValue)
+    }
+    setEditing(false)
+  }
+
+  const handleEdit = () => {
+    setInputValue(examDate ?? '')
+    setEditing(true)
+  }
+
+  return (
+    <Card>
+      <CardContent className="p-4">
+        {editing ? (
+          <div className="flex items-center gap-2">
+            <Input
+              type="date"
+              value={inputValue}
+              onChange={(e) => setInputValue(e.target.value)}
+              className="h-9 flex-1"
+            />
+            <Button size="sm" onClick={handleSave} disabled={!inputValue}>
+              저장
+            </Button>
+            <Button size="sm" variant="outline" onClick={() => setEditing(false)}>
+              취소
+            </Button>
+          </div>
+        ) : examDate && dday !== null ? (
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-muted-foreground text-xs">시험일까지</p>
+              <p className="text-2xl font-bold">
+                {dday > 0 ? `D-${dday}` : dday === 0 ? 'D-Day!' : `D+${Math.abs(dday)}`}
+              </p>
+              <p className="text-muted-foreground text-xs">{examDate}</p>
+            </div>
+            <div className="flex gap-1">
+              <Button size="sm" variant="ghost" onClick={handleEdit} className="text-xs">
+                수정
+              </Button>
+              <Button
+                size="sm"
+                variant="ghost"
+                onClick={() => setExamDate(null)}
+                className="text-xs text-red-500 hover:text-red-600"
+              >
+                삭제
+              </Button>
+            </div>
+          </div>
+        ) : (
+          <div className="flex items-center justify-between">
+            <p className="text-muted-foreground text-sm">시험일을 설정하면 D-day를 확인할 수 있습니다</p>
+            <Button size="sm" onClick={handleEdit}>
+              설정하기
+            </Button>
+          </div>
+        )}
+      </CardContent>
+    </Card>
+  )
+}
 
 export function DashboardPage() {
   const { examId } = useParams<{ examId: string }>()
   const navigate = useNavigate()
   const chapterProgress = useQuizStore((s) => s.chapterProgress)
+  const activityLog = useQuizStore((s) => s.activityLog)
   const examHistory = useMockExamStore((s) => s.examHistory)
 
   const {
@@ -63,6 +148,9 @@ export function DashboardPage() {
   return (
     <MobileLayout title="학습 현황" showBack>
       <div className="space-y-4">
+        {/* D-day */}
+        <DdayCard />
+
         {/* Overall Stats */}
         <Card>
           <CardHeader className="p-4 pb-2">
@@ -94,6 +182,16 @@ export function DashboardPage() {
                 <Progress value={overall.accuracy} className="h-2" />
               </div>
             )}
+          </CardContent>
+        </Card>
+
+        {/* Activity Heatmap */}
+        <Card>
+          <CardHeader className="p-4 pb-2">
+            <CardTitle className="text-sm font-medium">학습 활동</CardTitle>
+          </CardHeader>
+          <CardContent className="p-4 pt-0">
+            <ActivityHeatmap activityLog={activityLog} />
           </CardContent>
         </Card>
 

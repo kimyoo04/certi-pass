@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import type { MultipleChoiceQuestion, Question } from '@/types'
-import { BookmarkCheckIcon, BookmarkIcon, PencilIcon } from 'lucide-react'
+import { BookmarkCheckIcon, BookmarkIcon, BrainIcon, PencilIcon, ShuffleIcon } from 'lucide-react'
 import { useNavigate, useParams, useSearchParams } from 'react-router-dom'
 
 import { FetchErrorFallback } from '@/components/fetch-error-fallback'
@@ -14,9 +14,11 @@ import { Progress } from '@/components/ui/progress'
 import { useBookmarkStore } from '@/stores/use-bookmark-store'
 import { useQuestionEditStore } from '@/stores/use-question-edit-store'
 import { useQuizStore } from '@/stores/use-quiz-store'
+import { useSM2Store } from '@/stores/use-sm2-store'
 import { useCachedFetch } from '@/hooks/use-cached-fetch'
 import { useSwipe } from '@/hooks/use-swipe'
 import { fisherYatesShuffle } from '@/utils/shuffle'
+import { sm2Sort } from '@/utils/sm2'
 import { DATA_PATHS, QUERY_MODES, QUESTION_TYPES } from '@/constants'
 
 export function QuizPage() {
@@ -42,7 +44,10 @@ export function QuizPage() {
     goToQuestion,
     selectAnswer,
     recordMcAnswer,
+    incrementActivity,
   } = useQuizStore()
+
+  const { sm2Data, sm2SortEnabled, updateQuestion: updateSM2Question, toggleSM2Sort } = useSM2Store()
 
   const getEditedQuestion = useQuestionEditStore((s) => s.getEditedQuestion)
   const [editTarget, setEditTarget] = useState<Question | null>(null)
@@ -72,6 +77,9 @@ export function QuizPage() {
     if (bookmarkOnly) {
       all = all.filter((q) => isBookmarked(q.id))
     }
+    if (sm2SortEnabled) {
+      return sm2Sort(all, sm2Data)
+    }
     if (shuffleEnabled) {
       return fisherYatesShuffle(all, chapterKey)
     }
@@ -83,6 +91,8 @@ export function QuizPage() {
     chapterProgress,
     chapterKey,
     shuffleEnabled,
+    sm2SortEnabled,
+    sm2Data,
     getEditedQuestion,
     isBookmarked,
   ])
@@ -94,8 +104,10 @@ export function QuizPage() {
       const question = mcQuestions[Math.min(currentIndex, mcQuestions.length - 1)]
       const correct = idx === question.correctIndex
       recordMcAnswer(chapterKey, question.id, correct, mcQuestions.length)
+      updateSM2Question(question.id, correct ? 4 : 1)
+      incrementActivity()
     },
-    [selectedAnswer, selectAnswer, mcQuestions, currentIndex, recordMcAnswer, chapterKey],
+    [selectedAnswer, selectAnswer, mcQuestions, currentIndex, recordMcAnswer, chapterKey, updateSM2Question, incrementActivity],
   )
 
   const safeIndex = Math.min(currentIndex, Math.max(mcQuestions.length - 1, 0))
@@ -166,7 +178,31 @@ export function QuizPage() {
       showBack
     >
       <div className="space-y-4" {...swipeHandlers}>
-        <Progress value={progressPercent} className="h-2" />
+        <div className="flex items-center gap-2">
+          <Progress value={progressPercent} className="h-2 flex-1" />
+          <button
+            onClick={() => useQuizStore.getState().toggleShuffle()}
+            className={`flex h-7 items-center gap-1 rounded-full px-2 text-xs transition-colors ${
+              shuffleEnabled
+                ? 'bg-primary text-primary-foreground'
+                : 'bg-muted text-muted-foreground hover:bg-muted/80'
+            }`}
+            title="랜덤 셔플"
+          >
+            <ShuffleIcon className="h-3 w-3" />
+          </button>
+          <button
+            onClick={toggleSM2Sort}
+            className={`flex h-7 items-center gap-1 rounded-full px-2 text-xs transition-colors ${
+              sm2SortEnabled
+                ? 'bg-purple-500 text-white'
+                : 'bg-muted text-muted-foreground hover:bg-muted/80'
+            }`}
+            title="SM-2 복습 순서"
+          >
+            <BrainIcon className="h-3 w-3" />
+          </button>
+        </div>
 
         <Card>
           <CardContent className="p-5">

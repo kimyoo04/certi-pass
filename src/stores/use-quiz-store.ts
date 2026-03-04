@@ -16,6 +16,7 @@ interface QuizState {
   // Persisted state
   chapterProgress: Record<string, ChapterProgress>
   shuffleEnabled: boolean
+  activityLog: Record<string, number> // 'YYYY-MM-DD' → count
 
   // Session actions
   setQuestions: (questions: Question[]) => void
@@ -25,6 +26,7 @@ interface QuizState {
   setWrongOnlyMode: (enabled: boolean) => void
   toggleShuffle: () => void
   reset: () => void
+  incrementActivity: () => void
 
   // Progress actions
   recordMcAnswer: (
@@ -57,6 +59,7 @@ export const useQuizStore = create<QuizState>()(
       wrongOnlyMode: false,
       chapterProgress: {},
       shuffleEnabled: false,
+      activityLog: {},
 
       setQuestions: (questions) =>
         set({
@@ -83,6 +86,17 @@ export const useQuizStore = create<QuizState>()(
       setWrongOnlyMode: (enabled) => set({ wrongOnlyMode: enabled }),
 
       toggleShuffle: () => set((state) => ({ shuffleEnabled: !state.shuffleEnabled })),
+
+      incrementActivity: () =>
+        set((state) => {
+          const today = new Date().toISOString().slice(0, 10)
+          return {
+            activityLog: {
+              ...state.activityLog,
+              [today]: (state.activityLog[today] ?? 0) + 1,
+            },
+          }
+        }),
 
       reset: () =>
         set({
@@ -140,6 +154,7 @@ export const useQuizStore = create<QuizState>()(
       partialize: (state) => ({
         chapterProgress: state.chapterProgress,
         shuffleEnabled: state.shuffleEnabled,
+        activityLog: state.activityLog,
       }),
     },
   ),
