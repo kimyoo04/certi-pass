@@ -9,8 +9,8 @@ import { MobileLayout } from '@/components/mobile-layout'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
-import { useCachedFetch } from '@/hooks/use-cached-fetch'
 import { useMockExamStore } from '@/stores/use-mock-exam-store'
+import { useCachedFetch } from '@/hooks/use-cached-fetch'
 import { useSwipe } from '@/hooks/use-swipe'
 import { DATA_PATHS } from '@/constants'
 
@@ -32,16 +32,27 @@ export function MockExamPage() {
   } = useMockExamStore()
 
   const shouldFetch = !isStarted && !isFinished
-  const { data: allQuestions, loading: quizLoading, error: quizError, retry: quizRetry } = useCachedFetch<MultipleChoiceQuestion[]>(
+  const {
+    data: allQuestions,
+    loading: quizLoading,
+    error: quizError,
+    retry: quizRetry,
+  } = useCachedFetch<MultipleChoiceQuestion[]>(
     shouldFetch ? DATA_PATHS.ALL_QUIZ(examId!, subjectId!) : null,
   )
-  const { data: curriculum, loading: currLoading, error: currError, retry: currRetry } = useCachedFetch<Curriculum>(
-    shouldFetch ? DATA_PATHS.CURRICULUM(examId!) : null,
-  )
+  const {
+    data: curriculum,
+    loading: currLoading,
+    error: currError,
+    retry: currRetry,
+  } = useCachedFetch<Curriculum>(shouldFetch ? DATA_PATHS.CURRICULUM(examId!) : null)
 
   const loading = shouldFetch && (quizLoading || currLoading)
   const fetchError = quizError || currError
-  const fetchRetry = () => { quizRetry(); currRetry() }
+  const fetchRetry = () => {
+    quizRetry()
+    currRetry()
+  }
 
   useEffect(() => {
     if (isStarted || isFinished) return

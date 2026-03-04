@@ -32,8 +32,12 @@ interface SearchableQuestion {
 
 export function SearchPage() {
   const { examId } = useParams<{ examId: string }>()
-  const { data: curriculum, loading: currLoading, error: currError, retry: currRetry } =
-    useCachedFetch<Curriculum>(DATA_PATHS.CURRICULUM(examId!))
+  const {
+    data: curriculum,
+    loading: currLoading,
+    error: currError,
+    retry: currRetry,
+  } = useCachedFetch<Curriculum>(DATA_PATHS.CURRICULUM(examId!))
 
   const [allQuestions, setAllQuestions] = useState<SearchableQuestion[]>([])
   const [questionsLoading, setQuestionsLoading] = useState(false)
@@ -176,9 +180,7 @@ export function SearchPage() {
             검색어를 입력하거나 필터를 선택하세요
           </p>
         ) : filteredQuestions.length === 0 ? (
-          <p className="text-muted-foreground py-10 text-center text-sm">
-            검색 결과가 없습니다
-          </p>
+          <p className="text-muted-foreground py-10 text-center text-sm">검색 결과가 없습니다</p>
         ) : (
           <>
             <p className="text-muted-foreground text-xs">

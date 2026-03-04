@@ -1,9 +1,9 @@
+import type { MockExamResult } from '@/types'
 import { screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 
 import { MockExamResultPage } from '@/pages/mock-exam-result-page'
 import { useMockExamStore } from '@/stores/use-mock-exam-store'
-import type { MockExamResult } from '@/types'
 
 import { MC_QUESTIONS } from '../helpers/mock-data'
 import { mockExamResultPath, renderWithRoute, ROUTES } from '../helpers/render-with-route'

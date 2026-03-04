@@ -11,10 +11,10 @@ import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
 import { Progress } from '@/components/ui/progress'
-import { useCachedFetch } from '@/hooks/use-cached-fetch'
 import { useBookmarkStore } from '@/stores/use-bookmark-store'
 import { useQuestionEditStore } from '@/stores/use-question-edit-store'
 import { useQuizStore } from '@/stores/use-quiz-store'
+import { useCachedFetch } from '@/hooks/use-cached-fetch'
 import { useSwipe } from '@/hooks/use-swipe'
 import { DATA_PATHS, QUERY_MODES, QUESTION_TYPES } from '@/constants'
 
@@ -44,9 +44,12 @@ export function FillBlankPage() {
 
   const chapterKey = `${examId}/${subjectId}/${chapterId}`
 
-  const { data: fetchedQuestions, loading: fetchLoading, error: fetchError, retry: fetchRetry } = useCachedFetch<Question[]>(
-    DATA_PATHS.CHAPTER_QUIZ(examId!, subjectId!, chapterId!),
-  )
+  const {
+    data: fetchedQuestions,
+    loading: fetchLoading,
+    error: fetchError,
+    retry: fetchRetry,
+  } = useCachedFetch<Question[]>(DATA_PATHS.CHAPTER_QUIZ(examId!, subjectId!, chapterId!))
 
   useEffect(() => {
     if (fetchedQuestions) setQuestions(fetchedQuestions)

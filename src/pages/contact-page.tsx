@@ -37,13 +37,19 @@ export function ContactPage() {
       <p className="text-muted-foreground mb-6 text-sm">궁금한 점이나 건의사항을 보내주세요.</p>
 
       {status === 'success' && (
-        <div role="alert" className="mb-4 rounded-md border border-green-200 bg-green-50 p-3 text-sm text-green-800 dark:border-green-800 dark:bg-green-950 dark:text-green-200">
+        <div
+          role="alert"
+          className="mb-4 rounded-md border border-green-200 bg-green-50 p-3 text-sm text-green-800 dark:border-green-800 dark:bg-green-950 dark:text-green-200"
+        >
           문의가 성공적으로 전송되었습니다. 감사합니다!
         </div>
       )}
 
       {status === 'error' && (
-        <div role="alert" className="mb-4 rounded-md border border-red-200 bg-red-50 p-3 text-sm text-red-800 dark:border-red-800 dark:bg-red-950 dark:text-red-200">
+        <div
+          role="alert"
+          className="mb-4 rounded-md border border-red-200 bg-red-50 p-3 text-sm text-red-800 dark:border-red-800 dark:bg-red-950 dark:text-red-200"
+        >
           전송에 실패했습니다. 잠시 후 다시 시도해주세요.
         </div>
       )}

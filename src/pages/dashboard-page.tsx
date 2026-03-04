@@ -8,9 +8,9 @@ import { MobileLayout } from '@/components/mobile-layout'
 import { Badge } from '@/components/ui/badge'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Progress } from '@/components/ui/progress'
-import { useCachedFetch } from '@/hooks/use-cached-fetch'
 import { useMockExamStore } from '@/stores/use-mock-exam-store'
 import { useQuizStore } from '@/stores/use-quiz-store'
+import { useCachedFetch } from '@/hooks/use-cached-fetch'
 import { aggregateBySubject, getOverallStats, getWeakAreas } from '@/utils/stats-utils'
 import { DATA_PATHS } from '@/constants'
 
@@ -20,9 +20,12 @@ export function DashboardPage() {
   const chapterProgress = useQuizStore((s) => s.chapterProgress)
   const examHistory = useMockExamStore((s) => s.examHistory)
 
-  const { data: curriculum, loading, error, retry } = useCachedFetch<Curriculum>(
-    DATA_PATHS.CURRICULUM(examId!),
-  )
+  const {
+    data: curriculum,
+    loading,
+    error,
+    retry,
+  } = useCachedFetch<Curriculum>(DATA_PATHS.CURRICULUM(examId!))
 
   const subjectStats = useMemo(
     () => (curriculum ? aggregateBySubject(chapterProgress, curriculum) : []),

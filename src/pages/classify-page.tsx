@@ -15,9 +15,9 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
-import { useCachedFetch } from '@/hooks/use-cached-fetch'
 import { useClassifyStore } from '@/stores/use-classify-store'
 import { useTreeStore } from '@/stores/use-tree-store'
+import { useCachedFetch } from '@/hooks/use-cached-fetch'
 import { flattenTree } from '@/utils/tree-utils'
 import { allSubjects } from '@/data/exam-tree'
 import type { TreeNode } from '@/types/tree'
@@ -50,7 +50,12 @@ export function ClassifyPage() {
   const tree = useTreeStore((s) => s.getTree(subjectId!))
   const flatNodes = useMemo(() => flattenTree(tree), [tree])
 
-  const { data: questions, loading, error: fetchError, retry: fetchRetry } = useCachedFetch<QuizQuestion[]>(
+  const {
+    data: questions,
+    loading,
+    error: fetchError,
+    retry: fetchRetry,
+  } = useCachedFetch<QuizQuestion[]>(
     examId && subjectId ? DATA_PATHS.ALL_QUIZ(examId, subjectId) : null,
   )
 

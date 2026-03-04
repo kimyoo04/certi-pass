@@ -35,7 +35,9 @@ export function HomePage() {
               }`}
               onClick={() => exam.isActive && navigate(`/exam/${exam.id}`)}
               onKeyDown={(e) =>
-                exam.isActive && (e.key === 'Enter' || e.key === ' ') && (e.preventDefault(), navigate(`/exam/${exam.id}`))
+                exam.isActive &&
+                (e.key === 'Enter' || e.key === ' ') &&
+                (e.preventDefault(), navigate(`/exam/${exam.id}`))
               }
               aria-label={`${exam.name} - ${exam.isActive ? '학습 가능' : '준비 중'}`}
             >

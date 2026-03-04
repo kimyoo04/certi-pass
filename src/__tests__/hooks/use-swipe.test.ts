@@ -1,10 +1,13 @@
-import { renderHook, act } from '@testing-library/react'
 import type { TouchEvent } from 'react'
+import { act, renderHook } from '@testing-library/react'
 
 import { useSwipe } from '@/hooks/use-swipe'
 
 function createTouchEvent(clientX: number, clientY: number) {
-  return { touches: [{ clientX, clientY }], changedTouches: [{ clientX, clientY }] } as unknown as TouchEvent<Element>
+  return {
+    touches: [{ clientX, clientY }],
+    changedTouches: [{ clientX, clientY }],
+  } as unknown as TouchEvent<Element>
 }
 
 describe('useSwipe', () => {

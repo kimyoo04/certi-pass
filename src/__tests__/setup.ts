@@ -3,9 +3,9 @@ import '@testing-library/jest-dom/vitest'
 import { cleanup } from '@testing-library/react'
 import { afterEach, beforeEach } from 'vitest'
 
-import { clearFetchCache } from '@/hooks/use-cached-fetch'
 import { useMockExamStore } from '@/stores/use-mock-exam-store'
 import { useQuizStore } from '@/stores/use-quiz-store'
+import { clearFetchCache } from '@/hooks/use-cached-fetch'
 
 // Mock window.matchMedia for jsdom (used by useTheme)
 Object.defineProperty(window, 'matchMedia', {
