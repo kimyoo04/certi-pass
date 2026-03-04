@@ -8,6 +8,7 @@ export const STORAGE_KEYS = {
   BOOKMARKS: 'certipass-bookmarks',
   MOCK_EXAM: 'certipass-mock-exam',
   THEME: 'certipass-theme',
+  FLASHCARDS: 'certipass-flashcards',
 } as const
 
 // ─── Exam Configuration ──────────────────────────────────────────────────────

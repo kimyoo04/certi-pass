@@ -1,7 +1,7 @@
-import { useState } from 'react'
-import type { FlashcardDeck } from '@/types'
-import { ChevronLeftIcon, ChevronRightIcon, RotateCcwIcon } from 'lucide-react'
-import { useParams } from 'react-router-dom'
+import { useMemo, useState } from 'react'
+import type { Flashcard, FlashcardDeck } from '@/types'
+import { ChevronLeftIcon, ChevronRightIcon, PencilIcon, RotateCcwIcon } from 'lucide-react'
+import { useNavigate, useParams } from 'react-router-dom'
 
 import { FetchErrorFallback } from '@/components/fetch-error-fallback'
 import { LoadingSpinner } from '@/components/loading-spinner'
@@ -10,12 +10,17 @@ import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { useCachedFetch } from '@/hooks/use-cached-fetch'
 import { useSwipe } from '@/hooks/use-swipe'
+import { useFlashcardStore } from '@/stores/use-flashcard-store'
 import { DATA_PATHS } from '@/constants'
 
 export function FlashcardPage() {
   const { examId, subjectId } = useParams<{ examId: string; subjectId: string }>()
+  const navigate = useNavigate()
   const [currentIndex, setCurrentIndex] = useState(0)
   const [isFlipped, setIsFlipped] = useState(false)
+
+  const getCustomCards = useFlashcardStore((s) => s.getCustomCards)
+  const customCards = getCustomCards(examId!, subjectId!)
 
   const {
     data: deck,
@@ -24,8 +29,13 @@ export function FlashcardPage() {
     retry,
   } = useCachedFetch<FlashcardDeck>(DATA_PATHS.FLASHCARDS(examId!, subjectId!))
 
+  const allCards = useMemo<Flashcard[]>(
+    () => (deck ? [...deck.cards, ...customCards] : []),
+    [deck, customCards],
+  )
+
   const goNext = () => {
-    if (!deck || currentIndex >= deck.cards.length - 1) return
+    if (currentIndex >= allCards.length - 1) return
     setCurrentIndex((i) => i + 1)
     setIsFlipped(false)
   }
@@ -57,16 +67,17 @@ export function FlashcardPage() {
     )
   }
 
-  const card = deck.cards[currentIndex]
-  const progress = Math.round(((currentIndex + 1) / deck.cards.length) * 100)
+  const card = allCards[currentIndex]
+  const progress = Math.round(((currentIndex + 1) / allCards.length) * 100)
+  const isCustomCard = card?.id.startsWith('custom_')
 
   return (
     <MobileLayout title={deck.subjectName} showBack>
       <div className="flex flex-col gap-6">
-        {/* Progress */}
+        {/* Progress + Edit button */}
         <div className="flex items-center justify-between">
           <span className="text-muted-foreground text-sm">
-            {currentIndex + 1} / {deck.cards.length}
+            {currentIndex + 1} / {allCards.length}
           </span>
           <div className="bg-muted h-1.5 flex-1 mx-4 rounded-full overflow-hidden">
             <div
@@ -74,17 +85,31 @@ export function FlashcardPage() {
               style={{ width: `${progress}%` }}
             />
           </div>
-          <span className="text-muted-foreground text-sm">{progress}%</span>
+          <Button
+            variant="ghost"
+            size="sm"
+            className="h-7 px-2 text-muted-foreground"
+            onClick={() => navigate(`/exam/${examId}/flashcards/${subjectId}/edit`)}
+            aria-label="카드 편집"
+          >
+            <PencilIcon className="h-3.5 w-3.5 mr-1" />
+            편집
+          </Button>
         </div>
 
-        {/* Category */}
-        {card.category && (
-          <div className="flex justify-center">
+        {/* Category + custom badge */}
+        <div className="flex items-center justify-center gap-1.5">
+          {card.category && (
             <Badge variant="secondary" className="text-xs">
               {card.category}
             </Badge>
-          </div>
-        )}
+          )}
+          {isCustomCard && (
+            <Badge variant="outline" className="text-xs border-primary/50 text-primary">
+              내 카드
+            </Badge>
+          )}
+        </div>
 
         {/* Card */}
         <div
@@ -138,7 +163,7 @@ export function FlashcardPage() {
           </div>
         </div>
 
-        {/* Spacer to keep card height consistent */}
+        {/* Spacer */}
         <div style={{ minHeight: '280px' }} className="invisible" aria-hidden />
 
         {/* Navigation */}
@@ -169,7 +194,7 @@ export function FlashcardPage() {
             variant="outline"
             size="lg"
             onClick={goNext}
-            disabled={currentIndex === deck.cards.length - 1}
+            disabled={currentIndex === allCards.length - 1}
             className="flex-1"
             aria-label="다음 카드"
           >
@@ -179,7 +204,7 @@ export function FlashcardPage() {
         </div>
 
         {/* Completion message */}
-        {currentIndex === deck.cards.length - 1 && (
+        {currentIndex === allCards.length - 1 && (
           <div className="rounded-xl bg-green-50 dark:bg-green-950/30 border border-green-200 dark:border-green-900 p-4 text-center">
             <p className="text-green-700 dark:text-green-400 text-sm font-medium">
               🎉 모든 카드를 학습했습니다!
