@@ -23,6 +23,12 @@
 - **개념 트리** — 과목별 계층 구조로 정리된 출제 범위 (대단원 > 중단원 > 소단원)
 - **문제 분류** — 기출문제를 개념 트리 노드에 매핑
 - **트리 편집** — 노드 추가/수정/삭제로 개인화된 개념 체계 구성
+- **플래시카드** — 과목별 핵심 용어/개념을 카드 뒤집기 방식으로 암기
+  - 3D 뒤집기 애니메이션 (앞면: 키워드, 뒷면: 정의)
+  - 좌우 스와이프 / 키보드 방향키 네비게이션
+  - 카드 직접 추가·수정·삭제 (localStorage 저장)
+  - 카테고리 셀렉트 + 새 카테고리 추가
+  - JSON 내보내기로 데이터 파일 영구 반영
 
 ### 모바일 UX
 - **Safe Area 지원** — 노치/홈 인디케이터 영역 자동 대응
@@ -72,6 +78,7 @@ src/
 │   ├── use-tree-store.ts
 │   ├── use-classify-store.ts
 │   ├── use-mock-exam-store.ts
+│   ├── use-flashcard-store.ts      # 커스텀 플래시카드 (localStorage)
 │   └── use-question-edit-store.ts  # [Dev] 문제 편집 오버레이
 ├── utils/               # 유틸리티
 │   ├── dev-persist.ts   # [Dev] JSON 파일 쓰기 클라이언트
@@ -89,7 +96,8 @@ public/data/
     └── s{1-6}/          # 과목별 폴더
         ├── all_quiz.json
         ├── y{year}_quiz.json
-        └── question_tree_map.json
+        ├── question_tree_map.json
+        └── flashcards.json         # 과목별 플래시카드 개념 데이터
 ```
 
 ## 시작하기
@@ -145,7 +153,33 @@ pnpm lint
 |----|--------|
 | s1 | 부동산학개론 |
 | s2 | 민법 및 민사특별법 |
-| s3 | 공인중개사법령 및 실무 |
-| s4 | 부동산공법 |
-| s5 | 부동산공시법 |
+| s3 | 부동산공법 |
+| s4 | 부동산공시법령 |
+| s5 | 공인중개사법령 및 중개실무 |
 | s6 | 부동산세법 |
+
+## 플래시카드 데이터 추가 방법
+
+웹에서 카드를 추가하면 localStorage에 임시 저장됩니다. 영구 반영하려면:
+
+1. 과목 선택 → **개념 플래시카드** → 과목 선택 → **편집** 버튼
+2. 카드 추가·수정 후 **JSON 내보내기** 클릭
+3. 다운로드된 파일을 `public/data/realtor/s{N}/flashcards.json`으로 교체
+4. 커밋 후 push → GitHub Actions가 자동 배포
+
+`flashcards.json` 구조:
+
+```json
+{
+  "subjectId": "s1",
+  "subjectName": "부동산학개론",
+  "cards": [
+    {
+      "id": "s1_fc001",
+      "term": "부동성",
+      "definition": "토지는 위치가 고정되어 이동이 불가능한 특성.",
+      "category": "토지의 특성"
+    }
+  ]
+}
+```
