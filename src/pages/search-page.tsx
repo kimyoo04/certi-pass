@@ -1,6 +1,6 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import type { Curriculum } from '@/types'
-import { ChevronDownIcon, ChevronUpIcon, PlayIcon, SearchIcon } from 'lucide-react'
+import { ChevronDownIcon, ChevronUpIcon, ClockIcon, PlayIcon, SearchIcon, XIcon } from 'lucide-react'
 import { useNavigate, useParams } from 'react-router-dom'
 
 import { FetchErrorFallback } from '@/components/fetch-error-fallback'
@@ -21,6 +21,37 @@ import { cachedFetch, useCachedFetch } from '@/hooks/use-cached-fetch'
 import { DATA_PATHS } from '@/constants'
 
 const MAX_RESULTS = 150
+const HISTORY_KEY = 'certipass-search-history'
+const MAX_HISTORY = 10
+
+// ─── 검색 기록 유틸 ──────────────────────────────────────────────────────────
+
+function loadHistory(): string[] {
+  try {
+    return JSON.parse(localStorage.getItem(HISTORY_KEY) ?? '[]')
+  } catch {
+    return []
+  }
+}
+
+function saveHistory(keyword: string, prev: string[]): string[] {
+  const next = [keyword, ...prev.filter((k) => k !== keyword)].slice(0, MAX_HISTORY)
+  localStorage.setItem(HISTORY_KEY, JSON.stringify(next))
+  return next
+}
+
+function removeHistory(keyword: string, prev: string[]): string[] {
+  const next = prev.filter((k) => k !== keyword)
+  localStorage.setItem(HISTORY_KEY, JSON.stringify(next))
+  return next
+}
+
+function clearHistory(): string[] {
+  localStorage.removeItem(HISTORY_KEY)
+  return []
+}
+
+// ─── 타입 ────────────────────────────────────────────────────────────────────
 
 interface SearchableQuestion {
   id: string
@@ -34,6 +65,8 @@ interface SearchableQuestion {
   explanation?: string
   chapterId: string
 }
+
+// ─── 키워드 하이라이팅 ────────────────────────────────────────────────────────
 
 function highlight(text: string, keyword: string): React.ReactNode {
   if (!keyword.trim()) return text
@@ -51,6 +84,8 @@ function highlight(text: string, keyword: string): React.ReactNode {
     </>
   )
 }
+
+// ─── 결과 카드 ───────────────────────────────────────────────────────────────
 
 interface QuestionCardProps {
   q: SearchableQuestion
@@ -130,6 +165,8 @@ function QuestionCard({ q, keyword, examId }: QuestionCardProps) {
   )
 }
 
+// ─── 메인 페이지 ─────────────────────────────────────────────────────────────
+
 export function SearchPage() {
   const { examId } = useParams<{ examId: string }>()
   const {
@@ -146,6 +183,9 @@ export function SearchPage() {
   const [subjectFilter, setSubjectFilter] = useState('all')
   const [yearFilter, setYearFilter] = useState('all')
   const [typeFilter, setTypeFilter] = useState<'all' | 'multiple_choice' | 'fill_in_the_blank'>('all')
+
+  const [history, setHistory] = useState<string[]>(loadHistory)
+  const commitTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   // Load all questions from all subjects
   useEffect(() => {
@@ -181,7 +221,20 @@ export function SearchPage() {
     }
   }, [curriculum, examId])
 
-  // Get unique years
+  // 검색어 변경 시 500ms 후 기록 저장
+  useEffect(() => {
+    if (commitTimer.current) clearTimeout(commitTimer.current)
+    if (!keyword.trim()) return
+    commitTimer.current = setTimeout(() => {
+      setHistory((prev) => saveHistory(keyword.trim(), prev))
+    }, 500)
+    return () => {
+      if (commitTimer.current) clearTimeout(commitTimer.current)
+    }
+  }, [keyword])
+
+  const applyHistory = (term: string) => setKeyword(term)
+
   const years = useMemo(() => {
     const yrs = new Set<number>()
     for (const q of allQuestions) {
@@ -190,23 +243,19 @@ export function SearchPage() {
     return [...yrs].sort((a, b) => b - a)
   }, [allQuestions])
 
-  // Filter questions
   const filteredQuestions = useMemo(() => {
     let result = allQuestions
 
     if (subjectFilter !== 'all') {
       result = result.filter((q) => q.subjectId === subjectFilter)
     }
-
     if (yearFilter !== 'all') {
       const year = parseInt(yearFilter)
       result = result.filter((q) => q.year === year)
     }
-
     if (typeFilter !== 'all') {
       result = result.filter((q) => q.type === typeFilter)
     }
-
     if (keyword.trim()) {
       const lower = keyword.toLowerCase()
       result = result.filter(
@@ -241,18 +290,27 @@ export function SearchPage() {
   return (
     <MobileLayout title="문제 검색" showBack>
       <div className="space-y-3">
-        {/* Search input */}
+        {/* 검색 입력 */}
         <div className="relative">
           <SearchIcon className="text-muted-foreground absolute top-2.5 left-2.5 h-4 w-4" />
           <Input
             placeholder="키워드로 문제 검색..."
             value={keyword}
             onChange={(e) => setKeyword(e.target.value)}
-            className="h-9 pl-8"
+            className="h-9 pl-8 pr-8"
           />
+          {keyword && (
+            <button
+              className="text-muted-foreground hover:text-foreground absolute top-2.5 right-2.5"
+              onClick={() => setKeyword('')}
+              aria-label="검색어 지우기"
+            >
+              <XIcon className="h-4 w-4" />
+            </button>
+          )}
         </div>
 
-        {/* Filters */}
+        {/* 필터 */}
         <div className="flex gap-2">
           <Select value={subjectFilter} onValueChange={setSubjectFilter}>
             <SelectTrigger className="h-9 flex-1">
@@ -283,7 +341,7 @@ export function SearchPage() {
           </Select>
         </div>
 
-        {/* Type filter */}
+        {/* 타입 필터 */}
         <div className="flex gap-1.5">
           {(['all', 'multiple_choice', 'fill_in_the_blank'] as const).map((t) => (
             <button
@@ -300,13 +358,50 @@ export function SearchPage() {
           ))}
         </div>
 
-        {/* Results */}
+        {/* 결과 영역 */}
         {questionsLoading ? (
           <LoadingSpinner />
         ) : !hasFilters ? (
-          <p className="text-muted-foreground py-10 text-center text-sm">
-            검색어를 입력하거나 필터를 선택하세요
-          </p>
+          /* 검색어 없을 때: 최근 검색 기록 */
+          history.length > 0 ? (
+            <div className="space-y-2">
+              <div className="flex items-center justify-between">
+                <span className="text-muted-foreground flex items-center gap-1 text-xs">
+                  <ClockIcon className="h-3 w-3" />
+                  최근 검색
+                </span>
+                <button
+                  className="text-muted-foreground hover:text-foreground text-xs"
+                  onClick={() => setHistory(clearHistory())}
+                >
+                  전체 삭제
+                </button>
+              </div>
+              <div className="flex flex-wrap gap-1.5">
+                {history.map((term) => (
+                  <div key={term} className="bg-muted flex items-center gap-1 rounded-full pl-3 pr-1.5 py-1">
+                    <button
+                      className="text-sm"
+                      onClick={() => applyHistory(term)}
+                    >
+                      {term}
+                    </button>
+                    <button
+                      className="text-muted-foreground hover:text-foreground flex h-4 w-4 items-center justify-center rounded-full"
+                      onClick={() => setHistory((prev) => removeHistory(term, prev))}
+                      aria-label={`${term} 삭제`}
+                    >
+                      <XIcon className="h-2.5 w-2.5" />
+                    </button>
+                  </div>
+                ))}
+              </div>
+            </div>
+          ) : (
+            <p className="text-muted-foreground py-10 text-center text-sm">
+              검색어를 입력하거나 필터를 선택하세요
+            </p>
+          )
         ) : filteredQuestions.length === 0 ? (
           <p className="text-muted-foreground py-10 text-center text-sm">검색 결과가 없습니다</p>
         ) : (
