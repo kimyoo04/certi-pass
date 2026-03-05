@@ -95,7 +95,7 @@ export function SubjectPage() {
             {curriculum.subjects.map((subject) => (
               <Card
                 key={`flashcard-${subject.id}`}
-                className="hover:border-primary/50 cursor-pointer transition-colors"
+                className="hover:border-primary/50 cursor-pointer py-0 gap-0 transition-colors"
                 onClick={() =>
                   navigate(`/exam/${examId}/flashcards/${subject.id}`)
                 }
@@ -129,7 +129,7 @@ export function SubjectPage() {
               return (
                 <Card
                   key={`mock-${subject.id}`}
-                  className="hover:border-primary/50 cursor-pointer transition-colors"
+                  className="hover:border-primary/50 cursor-pointer py-0 gap-0 transition-colors"
                   onClick={() => navigate(`/exam/${examId}/mock/${subject.id}`)}
                 >
                   <CardHeader className="p-2.5">
@@ -163,7 +163,7 @@ export function SubjectPage() {
             {curriculum.subjects.map((subject) => (
               <Card
                 key={`ox-${subject.id}`}
-                className="hover:border-primary/50 cursor-pointer transition-colors"
+                className="hover:border-primary/50 cursor-pointer py-0 gap-0 transition-colors"
                 onClick={() => navigate(`/exam/${examId}/ox/${subject.id}`)}
               >
                 <CardHeader className="p-2.5">
@@ -186,7 +186,7 @@ export function SubjectPage() {
             {curriculum.subjects.map((subject) => (
               <Card
                 key={`classify-${subject.id}`}
-                className="hover:border-primary/50 cursor-pointer transition-colors"
+                className="hover:border-primary/50 cursor-pointer py-0 gap-0 transition-colors"
                 onClick={() =>
                   navigate(`/exam/${examId}/classify/${subject.id}`)
                 }
@@ -243,7 +243,7 @@ export function SubjectPage() {
                           key={chapter.id}
                           role="link"
                           tabIndex={0}
-                          className="hover:border-primary/50 cursor-pointer transition-colors"
+                          className="hover:border-primary/50 cursor-pointer py-0 gap-0 transition-colors"
                           onClick={() =>
                             navigate(
                               `/exam/${examId}/study/${subject.id}/${chapter.id}/quiz`,
@@ -343,7 +343,7 @@ export function SubjectPage() {
                           key={chapter.id}
                           role="link"
                           tabIndex={0}
-                          className="hover:border-primary/50 cursor-pointer transition-colors"
+                          className="hover:border-primary/50 cursor-pointer py-0 gap-0 transition-colors"
                           onClick={() =>
                             navigate(
                               `/exam/${examId}/study/${subject.id}/${chapter.id}/blank`,
