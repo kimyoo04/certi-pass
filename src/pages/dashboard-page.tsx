@@ -101,6 +101,7 @@ function DdayCard() {
 export function DashboardPage() {
   const { examId } = useParams<{ examId: string }>()
   const navigate = useNavigate()
+
   const chapterProgress = useQuizStore((s) => s.chapterProgress)
   const activityLog = useQuizStore((s) => s.activityLog)
   const examHistory = useMockExamStore((s) => s.examHistory)
@@ -110,7 +111,7 @@ export function DashboardPage() {
     loading,
     error,
     retry,
-  } = useCachedFetch<Curriculum>(DATA_PATHS.CURRICULUM(examId!))
+  } = useCachedFetch<Curriculum>(examId ? DATA_PATHS.CURRICULUM(examId) : null)
 
   const subjectStats = useMemo(
     () => (curriculum ? aggregateBySubject(chapterProgress, curriculum) : []),
@@ -128,6 +129,8 @@ export function DashboardPage() {
         .slice(0, 5),
     [examHistory, examId],
   )
+
+  if (!examId) return null
 
   if (error) {
     return (

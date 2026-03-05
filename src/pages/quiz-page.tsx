@@ -19,6 +19,7 @@ import { useCachedFetch } from '@/hooks/use-cached-fetch'
 import { useSwipe } from '@/hooks/use-swipe'
 import { fisherYatesShuffle } from '@/utils/shuffle'
 import { sm2Sort } from '@/utils/sm2'
+import { makeChapterKey, makeResultPath, makeTreePath } from '@/utils/path-utils'
 import { DATA_PATHS, QUERY_MODES, QUESTION_TYPES } from '@/constants'
 
 export function QuizPage() {
@@ -53,14 +54,16 @@ export function QuizPage() {
   const [editTarget, setEditTarget] = useState<Question | null>(null)
   const { isBookmarked, toggleBookmark } = useBookmarkStore()
 
-  const chapterKey = `${examId}/${subjectId}/${chapterId}`
+  const chapterKey = examId && subjectId && chapterId ? makeChapterKey(examId, subjectId, chapterId) : ''
 
   const {
     data: fetchedQuestions,
     loading: fetchLoading,
     error: fetchError,
     retry: fetchRetry,
-  } = useCachedFetch<Question[]>(DATA_PATHS.CHAPTER_QUIZ(examId!, subjectId!, chapterId!))
+  } = useCachedFetch<Question[]>(
+    examId && subjectId && chapterId ? DATA_PATHS.CHAPTER_QUIZ(examId, subjectId, chapterId) : null,
+  )
 
   useEffect(() => {
     if (fetchedQuestions) setQuestions(fetchedQuestions)
@@ -117,6 +120,8 @@ export function QuizPage() {
     onSwipeLeft: () => !isLast && goToQuestion(safeIndex + 1),
     onSwipeRight: () => safeIndex > 0 && goToQuestion(safeIndex - 1),
   })
+
+  if (!examId || !subjectId || !chapterId) return null
 
   if (fetchError) {
     return (
@@ -310,7 +315,7 @@ export function QuizPage() {
                 variant="outline"
                 size="sm"
                 className="mt-3 w-full gap-1 text-xs"
-                onClick={() => navigate(`/exam/${examId}/tree/${subjectId}`)}
+                onClick={() => navigate(makeTreePath(examId, subjectId))}
               >
                 📚 관련 개념 보기
               </Button>
@@ -332,7 +337,7 @@ export function QuizPage() {
               className="flex-1"
               onClick={() =>
                 navigate(
-                  `/exam/${examId}/study/${subjectId}/${chapterId}/result?mode=${wrongOnly ? QUERY_MODES.WRONG : QUERY_MODES.QUIZ}`,
+                  makeResultPath(examId, subjectId, chapterId, wrongOnly ? QUERY_MODES.WRONG : QUERY_MODES.QUIZ),
                 )
               }
             >

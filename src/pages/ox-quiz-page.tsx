@@ -20,7 +20,9 @@ export function OXQuizPage() {
     loading,
     error,
     retry,
-  } = useCachedFetch<OXQuestion[]>(DATA_PATHS.OX_QUIZ(examId!, subjectId!))
+  } = useCachedFetch<OXQuestion[]>(
+    examId && subjectId ? DATA_PATHS.OX_QUIZ(examId, subjectId) : null,
+  )
 
   const [currentIndex, setCurrentIndex] = useState(0)
   const [selectedAnswer, setSelectedAnswer] = useState<boolean | null>(null)
@@ -63,6 +65,8 @@ export function OXQuizPage() {
       if (isAnswered && safeIndex > 0 && !isAnswered) return
     },
   })
+
+  if (!examId || !subjectId) return null
 
   if (error) {
     return (

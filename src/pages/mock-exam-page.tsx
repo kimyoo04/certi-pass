@@ -38,14 +38,14 @@ export function MockExamPage() {
     error: quizError,
     retry: quizRetry,
   } = useCachedFetch<MultipleChoiceQuestion[]>(
-    shouldFetch ? DATA_PATHS.ALL_QUIZ(examId!, subjectId!) : null,
+    shouldFetch ? DATA_PATHS.ALL_QUIZ(examId, subjectId) : null,
   )
   const {
     data: curriculum,
     loading: currLoading,
     error: currError,
     retry: currRetry,
-  } = useCachedFetch<Curriculum>(shouldFetch ? DATA_PATHS.CURRICULUM(examId!) : null)
+  } = useCachedFetch<Curriculum>(shouldFetch ? DATA_PATHS.CURRICULUM(examId) : null)
 
   const loading = shouldFetch && (quizLoading || currLoading)
   const fetchError = quizError || currError
@@ -58,7 +58,7 @@ export function MockExamPage() {
     if (isStarted || isFinished) return
     if (!allQuestions || !curriculum) return
     const subject = curriculum.subjects.find((s) => s.id === subjectId)
-    startExam(examId!, subjectId!, subject?.name ?? subjectId!, allQuestions)
+    startExam(examId, subjectId, subject?.name ?? subjectId, allQuestions)
   }, [allQuestions, curriculum, isStarted, isFinished, examId, subjectId, startExam])
 
   // Auto-submit on timer expiry
@@ -87,6 +87,8 @@ export function MockExamPage() {
     onSwipeLeft: () => !isLast && goToQuestion(currentIndex + 1),
     onSwipeRight: () => currentIndex > 0 && goToQuestion(currentIndex - 1),
   })
+
+  if (!examId || !subjectId) return null
 
   if (fetchError) {
     return (
