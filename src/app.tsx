@@ -41,6 +41,9 @@ const FlashcardPage = lazy(() =>
 const FlashcardEditorPage = lazy(() =>
   import('@/pages/flashcard-editor-page').then((m) => ({ default: m.FlashcardEditorPage })),
 )
+const OXQuizPage = lazy(() =>
+  import('@/pages/ox-quiz-page').then((m) => ({ default: m.OXQuizPage })),
+)
 const ContactPage = lazy(() =>
   import('@/pages/contact-page').then((m) => ({ default: m.ContactPage })),
 )
@@ -63,6 +66,7 @@ function App() {
             <Route path="/exam/:examId/search" element={<SearchPage />} />
             <Route path="/exam/:examId/flashcards/:subjectId" element={<FlashcardPage />} />
             <Route path="/exam/:examId/flashcards/:subjectId/edit" element={<FlashcardEditorPage />} />
+            <Route path="/exam/:examId/ox/:subjectId" element={<OXQuizPage />} />
             <Route path="/exam/:examId/classify/:subjectId" element={<ClassifyPage />} />
             <Route path="/exam/:examId/mock/:subjectId" element={<MockExamPage />} />
             <Route path="/exam/:examId/mock/:subjectId/result" element={<MockExamResultPage />} />
