@@ -1,5 +1,5 @@
 interface ActivityHeatmapProps {
-  activityLog: Record<string, number>
+  activityLog: Record<string, number> | undefined
 }
 
 function getColorClass(count: number): string {
@@ -9,7 +9,7 @@ function getColorClass(count: number): string {
   return 'bg-green-600 dark:bg-green-500'
 }
 
-export function ActivityHeatmap({ activityLog }: ActivityHeatmapProps) {
+export function ActivityHeatmap({ activityLog = {} }: ActivityHeatmapProps) {
   const WEEKS = 16
   const DAYS = WEEKS * 7 // 112일
 

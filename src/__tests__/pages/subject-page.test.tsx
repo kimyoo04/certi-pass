@@ -59,12 +59,12 @@ describe('SubjectPage', () => {
     const user = userEvent.setup()
     renderSubjectPage()
 
-    // Wait for curriculum data to load and subject toggle buttons to appear
-    const subjectToggle = await screen.findByRole('button', { name: /부동산학개론/ })
-    expect(subjectToggle).toBeInTheDocument()
+    // 기출문제 풀기·빈칸 뚫기 각각 같은 과목 버튼이 있으므로 첫 번째(기출문제 풀기) 사용
+    const subjectToggles = await screen.findAllByRole('button', { name: /부동산학개론/ })
+    expect(subjectToggles.length).toBeGreaterThanOrEqual(1)
 
-    // Chapters are hidden by default, click to expand
-    await user.click(subjectToggle)
+    // Chapters are hidden by default, click to expand the first accordion (기출문제 풀기)
+    await user.click(subjectToggles[0])
 
     expect(screen.getByText('전체 기출문제 (200문제)')).toBeInTheDocument()
     expect(screen.getByText('2016년 기출 (40문제)')).toBeInTheDocument()

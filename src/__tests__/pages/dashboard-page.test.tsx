@@ -61,6 +61,7 @@ describe('DashboardPage', () => {
         revealedBlanks: {},
         wrongOnlyMode: false,
         shuffleEnabled: false,
+        activityLog: {},
         chapterProgress: {
           'realtor/s1/all': {
             correctIds: ['q1', 'q2', 'q3'],
@@ -103,6 +104,7 @@ describe('DashboardPage', () => {
         revealedBlanks: {},
         wrongOnlyMode: false,
         shuffleEnabled: false,
+        activityLog: {},
         chapterProgress: {
           'realtor/s1/all': {
             correctIds: ['q1'],
