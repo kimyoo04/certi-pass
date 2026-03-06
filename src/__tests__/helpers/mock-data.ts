@@ -122,14 +122,6 @@ export const PROGRESS_MIXED: ChapterProgress = {
   totalBlank: 3,
 }
 
-export const PROGRESS_EMPTY: ChapterProgress = {
-  correctIds: [],
-  wrongIds: [],
-  revealedIds: [],
-  totalMc: 0,
-  totalBlank: 0,
-}
-
 export const MOCK_CURRICULUM: Curriculum = {
   examId: 'realtor',
   subjects: [

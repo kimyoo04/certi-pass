@@ -15,7 +15,7 @@ export const STORAGE_KEYS = {
 
 // ─── Exam Configuration ──────────────────────────────────────────────────────
 
-export const SMALL_SUBJECT_IDS = new Set(['s4', 's6'])
+const SMALL_SUBJECT_IDS = new Set(['s4', 's6'])
 
 export const EXAM_CONFIG = {
   SMALL: {

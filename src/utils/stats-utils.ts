@@ -1,6 +1,6 @@
 import type { ChapterProgress, Curriculum } from '@/types'
 
-export interface SubjectStats {
+interface SubjectStats {
   subjectId: string
   subjectName: string
   correctCount: number
@@ -9,7 +9,7 @@ export interface SubjectStats {
   accuracy: number // 0-100
 }
 
-export interface OverallStats {
+interface OverallStats {
   totalCorrect: number
   totalWrong: number
   totalAttempted: number

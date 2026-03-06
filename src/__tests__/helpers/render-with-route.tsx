@@ -15,7 +15,7 @@ export const ROUTES = {
   oxQuiz: '/exam/:examId/ox/:subjectId',
 } as const
 
-export const TEST_PARAMS = {
+const TEST_PARAMS = {
   examId: 'realtor',
   subjectId: 'sub_1',
   chapterId: 'ch_1',
