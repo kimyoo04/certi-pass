@@ -87,7 +87,9 @@ function DdayCard() {
           </div>
         ) : (
           <div className="flex items-center justify-between">
-            <p className="text-muted-foreground text-sm">시험일을 설정하면 D-day를 확인할 수 있습니다</p>
+            <p className="text-muted-foreground text-sm">
+              시험일을 설정하면 D-day를 확인할 수 있습니다
+            </p>
             <Button size="sm" onClick={handleEdit}>
               설정하기
             </Button>

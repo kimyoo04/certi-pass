@@ -9,7 +9,10 @@ export interface SM2Record {
  * SM-2 알고리즘으로 복습 일정을 업데이트한다.
  * quality: 0~5 (0=완전 오답, 5=완벽 정답)
  */
-export function updateSM2(record: SM2Record | undefined, quality: 0 | 1 | 2 | 3 | 4 | 5): SM2Record {
+export function updateSM2(
+  record: SM2Record | undefined,
+  quality: 0 | 1 | 2 | 3 | 4 | 5,
+): SM2Record {
   const ef = record?.easinessFactor ?? 2.5
   const n = record?.repetitions ?? 0
   const prevInterval = record?.interval ?? 1

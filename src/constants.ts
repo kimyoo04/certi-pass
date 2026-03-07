@@ -73,3 +73,25 @@ export const QUESTION_TYPES = {
   FILL_IN_THE_BLANK: 'fill_in_the_blank',
   OX_QUIZ: 'ox_quiz',
 } as const
+
+// ─── Top Menu Types ──────────────────────────────────────────────────────────
+
+export const TOP_MENU_ITEMS = (examId: string) => {
+  return [
+    {
+      label: '학습 현황',
+      icon: '📊',
+      path: `/exam/${examId}/dashboard`,
+    },
+    {
+      label: '개념 트리',
+      icon: '📚',
+      path: `/exam/${examId}/tree`,
+    },
+    {
+      label: '문제 검색',
+      icon: '🔍',
+      path: `/exam/${examId}/search`,
+    },
+  ] as const
+}

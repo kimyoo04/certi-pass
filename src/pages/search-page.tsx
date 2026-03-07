@@ -1,6 +1,13 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import type { Curriculum } from '@/types'
-import { ChevronDownIcon, ChevronUpIcon, ClockIcon, PlayIcon, SearchIcon, XIcon } from 'lucide-react'
+import {
+  ChevronDownIcon,
+  ChevronUpIcon,
+  ClockIcon,
+  PlayIcon,
+  SearchIcon,
+  XIcon,
+} from 'lucide-react'
 import { useNavigate, useParams } from 'react-router-dom'
 
 import { FetchErrorFallback } from '@/components/fetch-error-fallback'
@@ -77,7 +84,7 @@ function highlight(text: string, keyword: string): React.ReactNode {
   return (
     <>
       {text.slice(0, idx)}
-      <mark className="bg-yellow-200 dark:bg-yellow-800 rounded-[2px]">
+      <mark className="rounded-[2px] bg-yellow-200 dark:bg-yellow-800">
         {text.slice(idx, idx + keyword.length)}
       </mark>
       {highlight(text.slice(idx + keyword.length), keyword)}
@@ -116,8 +123,12 @@ function QuestionCard({ q, keyword, examId }: QuestionCardProps) {
               {q.year}년
             </Badge>
           )}
-          <div className="ml-auto text-muted-foreground">
-            {expanded ? <ChevronUpIcon className="h-3.5 w-3.5" /> : <ChevronDownIcon className="h-3.5 w-3.5" />}
+          <div className="text-muted-foreground ml-auto">
+            {expanded ? (
+              <ChevronUpIcon className="h-3.5 w-3.5" />
+            ) : (
+              <ChevronDownIcon className="h-3.5 w-3.5" />
+            )}
           </div>
         </div>
         <p className="text-sm leading-relaxed">{highlight(q.content, keyword)}</p>
@@ -138,14 +149,16 @@ function QuestionCard({ q, keyword, examId }: QuestionCardProps) {
                     <span className="shrink-0 font-medium">{idx + 1}.</span>
                     <span>
                       {highlight(opt, keyword)}
-                      {idx === q.correctIndex && <span className="ml-1 font-bold text-green-600">✓</span>}
+                      {idx === q.correctIndex && (
+                        <span className="ml-1 font-bold text-green-600">✓</span>
+                      )}
                     </span>
                   </div>
                 ))}
               </div>
             )}
             {q.explanation && (
-              <p className="text-muted-foreground rounded-md bg-muted/50 px-2 py-1.5 text-xs leading-relaxed">
+              <p className="text-muted-foreground bg-muted/50 rounded-md px-2 py-1.5 text-xs leading-relaxed">
                 💡 {q.explanation}
               </p>
             )}
@@ -182,7 +195,9 @@ export function SearchPage() {
   const [keyword, setKeyword] = useState('')
   const [subjectFilter, setSubjectFilter] = useState('all')
   const [yearFilter, setYearFilter] = useState('all')
-  const [typeFilter, setTypeFilter] = useState<'all' | 'multiple_choice' | 'fill_in_the_blank'>('all')
+  const [typeFilter, setTypeFilter] = useState<'all' | 'multiple_choice' | 'fill_in_the_blank'>(
+    'all',
+  )
 
   const [history, setHistory] = useState<string[]>(loadHistory)
   const commitTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
@@ -285,7 +300,8 @@ export function SearchPage() {
     )
   }
 
-  const hasFilters = keyword.trim() || subjectFilter !== 'all' || yearFilter !== 'all' || typeFilter !== 'all'
+  const hasFilters =
+    keyword.trim() || subjectFilter !== 'all' || yearFilter !== 'all' || typeFilter !== 'all'
 
   return (
     <MobileLayout title="문제 검색" showBack>
@@ -297,7 +313,7 @@ export function SearchPage() {
             placeholder="키워드로 문제 검색..."
             value={keyword}
             onChange={(e) => setKeyword(e.target.value)}
-            className="h-9 pl-8 pr-8"
+            className="h-9 pr-8 pl-8"
           />
           {keyword && (
             <button
@@ -379,11 +395,11 @@ export function SearchPage() {
               </div>
               <div className="flex flex-wrap gap-1.5">
                 {history.map((term) => (
-                  <div key={term} className="bg-muted flex items-center gap-1 rounded-full pl-3 pr-1.5 py-1">
-                    <button
-                      className="text-sm"
-                      onClick={() => applyHistory(term)}
-                    >
+                  <div
+                    key={term}
+                    className="bg-muted flex items-center gap-1 rounded-full py-1 pr-1.5 pl-3"
+                  >
+                    <button className="text-sm" onClick={() => applyHistory(term)}>
                       {term}
                     </button>
                     <button

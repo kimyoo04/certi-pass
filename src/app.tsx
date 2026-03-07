@@ -65,7 +65,10 @@ function App() {
             <Route path="/exam/:examId/tree/:subjectId" element={<TreeViewPage />} />
             <Route path="/exam/:examId/search" element={<SearchPage />} />
             <Route path="/exam/:examId/flashcards/:subjectId" element={<FlashcardPage />} />
-            <Route path="/exam/:examId/flashcards/:subjectId/edit" element={<FlashcardEditorPage />} />
+            <Route
+              path="/exam/:examId/flashcards/:subjectId/edit"
+              element={<FlashcardEditorPage />}
+            />
             <Route path="/exam/:examId/ox/:subjectId" element={<OXQuizPage />} />
             <Route path="/exam/:examId/classify/:subjectId" element={<ClassifyPage />} />
             <Route path="/exam/:examId/mock/:subjectId" element={<MockExamPage />} />

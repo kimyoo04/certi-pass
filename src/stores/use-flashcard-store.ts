@@ -10,7 +10,12 @@ type CustomCards = Record<string, Flashcard[]>
 interface FlashcardState {
   customCards: CustomCards
   addCard: (examId: string, subjectId: string, card: Omit<Flashcard, 'id'>) => void
-  updateCard: (examId: string, subjectId: string, cardId: string, patch: Omit<Flashcard, 'id'>) => void
+  updateCard: (
+    examId: string,
+    subjectId: string,
+    cardId: string,
+    patch: Omit<Flashcard, 'id'>,
+  ) => void
   deleteCard: (examId: string, subjectId: string, cardId: string) => void
   getCustomCards: (examId: string, subjectId: string) => Flashcard[]
 }

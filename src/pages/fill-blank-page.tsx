@@ -43,7 +43,8 @@ export function FillBlankPage() {
   const [editTarget, setEditTarget] = useState<Question | null>(null)
   const { isBookmarked, toggleBookmark } = useBookmarkStore()
 
-  const chapterKey = examId && subjectId && chapterId ? makeChapterKey(examId, subjectId, chapterId) : ''
+  const chapterKey =
+    examId && subjectId && chapterId ? makeChapterKey(examId, subjectId, chapterId) : ''
 
   const {
     data: fetchedQuestions,

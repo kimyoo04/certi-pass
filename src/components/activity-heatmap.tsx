@@ -65,7 +65,7 @@ export function ActivityHeatmap({ activityLog = {} }: ActivityHeatmapProps) {
                     title={`${dateStr}: ${count}문제`}
                     className={`h-[11px] w-[11px] rounded-[2px] ${
                       isFuture ? 'bg-muted opacity-30' : getColorClass(count)
-                    } ${isToday ? 'ring-1 ring-primary ring-offset-1' : ''}`}
+                    } ${isToday ? 'ring-primary ring-1 ring-offset-1' : ''}`}
                   />
                 )
               })}

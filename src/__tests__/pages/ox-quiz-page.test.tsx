@@ -169,9 +169,7 @@ describe('OXQuizPage', () => {
 
     // Navigate to last question
     for (let i = 0; i < OX_QUESTIONS.length - 1; i++) {
-      await waitFor(() =>
-        expect(screen.getByText(OX_QUESTIONS[i].statement)).toBeInTheDocument(),
-      )
+      await waitFor(() => expect(screen.getByText(OX_QUESTIONS[i].statement)).toBeInTheDocument())
       await user.click(screen.getByText('O'))
       await waitFor(() => expect(screen.getByText('다음 문제')).toBeInTheDocument())
       await user.click(screen.getByText('다음 문제'))
@@ -193,9 +191,7 @@ describe('OXQuizPage', () => {
     renderOXQuiz()
 
     for (let i = 0; i < OX_QUESTIONS.length - 1; i++) {
-      await waitFor(() =>
-        expect(screen.getByText(OX_QUESTIONS[i].statement)).toBeInTheDocument(),
-      )
+      await waitFor(() => expect(screen.getByText(OX_QUESTIONS[i].statement)).toBeInTheDocument())
       await user.click(screen.getByText('O'))
       await waitFor(() => expect(screen.getByText('다음 문제')).toBeInTheDocument())
       await user.click(screen.getByText('다음 문제'))
@@ -253,9 +249,7 @@ describe('OXQuizPage', () => {
 
     // Complete all questions quickly
     for (let i = 0; i < OX_QUESTIONS.length - 1; i++) {
-      await waitFor(() =>
-        expect(screen.getByText(OX_QUESTIONS[i].statement)).toBeInTheDocument(),
-      )
+      await waitFor(() => expect(screen.getByText(OX_QUESTIONS[i].statement)).toBeInTheDocument())
       await user.click(screen.getByText('O'))
       await waitFor(() => expect(screen.getByText('다음 문제')).toBeInTheDocument())
       await user.click(screen.getByText('다음 문제'))

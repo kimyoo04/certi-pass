@@ -1,9 +1,8 @@
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
 
+import { updateSM2, type SM2Record } from '@/utils/sm2'
 import { STORAGE_KEYS } from '@/constants'
-import { updateSM2 } from '@/utils/sm2'
-import type { SM2Record } from '@/utils/sm2'
 
 interface SM2State {
   sm2Data: Record<string, SM2Record>

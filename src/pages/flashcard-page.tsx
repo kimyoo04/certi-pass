@@ -8,9 +8,9 @@ import { LoadingSpinner } from '@/components/loading-spinner'
 import { MobileLayout } from '@/components/mobile-layout'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
+import { useFlashcardStore } from '@/stores/use-flashcard-store'
 import { useCachedFetch } from '@/hooks/use-cached-fetch'
 import { useSwipe } from '@/hooks/use-swipe'
-import { useFlashcardStore } from '@/stores/use-flashcard-store'
 import { DATA_PATHS } from '@/constants'
 
 export function FlashcardPage() {
@@ -79,7 +79,7 @@ export function FlashcardPage() {
           <span className="text-muted-foreground text-sm">
             {currentIndex + 1} / {allCards.length}
           </span>
-          <div className="bg-muted h-1.5 flex-1 mx-4 rounded-full overflow-hidden">
+          <div className="bg-muted mx-4 h-1.5 flex-1 overflow-hidden rounded-full">
             <div
               className="bg-primary h-full rounded-full transition-all duration-300"
               style={{ width: `${progress}%` }}
@@ -88,11 +88,11 @@ export function FlashcardPage() {
           <Button
             variant="ghost"
             size="sm"
-            className="h-7 px-2 text-muted-foreground"
+            className="text-muted-foreground h-7 px-2"
             onClick={() => navigate(`/exam/${examId}/flashcards/${subjectId}/edit`)}
             aria-label="카드 편집"
           >
-            <PencilIcon className="h-3.5 w-3.5 mr-1" />
+            <PencilIcon className="mr-1 h-3.5 w-3.5" />
             편집
           </Button>
         </div>
@@ -105,7 +105,7 @@ export function FlashcardPage() {
             </Badge>
           )}
           {isCustomCard && (
-            <Badge variant="outline" className="text-xs border-primary/50 text-primary">
+            <Badge variant="outline" className="border-primary/50 text-primary text-xs">
               내 카드
             </Badge>
           )}
@@ -140,16 +140,16 @@ export function FlashcardPage() {
           >
             {/* Front - Term */}
             <div
-              className="absolute inset-0 flex flex-col items-center justify-center rounded-2xl border-2 bg-card p-8 shadow-md"
+              className="bg-card absolute inset-0 flex flex-col items-center justify-center rounded-2xl border-2 p-8 shadow-md"
               style={{ backfaceVisibility: 'hidden' }}
             >
               <p className="text-muted-foreground mb-6 text-xs">탭하여 정의 보기</p>
-              <h2 className="text-center text-2xl font-bold leading-snug">{card.term}</h2>
+              <h2 className="text-center text-2xl leading-snug font-bold">{card.term}</h2>
             </div>
 
             {/* Back - Definition */}
             <div
-              className="absolute inset-0 flex flex-col items-center justify-center rounded-2xl border-2 border-primary/40 bg-primary/5 p-8 shadow-md"
+              className="border-primary/40 bg-primary/5 absolute inset-0 flex flex-col items-center justify-center rounded-2xl border-2 p-8 shadow-md"
               style={{
                 backfaceVisibility: 'hidden',
                 transform: 'rotateY(180deg)',
@@ -167,7 +167,7 @@ export function FlashcardPage() {
         <div style={{ minHeight: '280px' }} className="invisible" aria-hidden />
 
         {/* Navigation */}
-        <div className="flex items-center justify-between gap-3 mt-4">
+        <div className="mt-4 flex items-center justify-between gap-3">
           <Button
             variant="outline"
             size="lg"
@@ -176,7 +176,7 @@ export function FlashcardPage() {
             className="flex-1"
             aria-label="이전 카드"
           >
-            <ChevronLeftIcon className="h-5 w-5 mr-1" />
+            <ChevronLeftIcon className="mr-1 h-5 w-5" />
             이전
           </Button>
 
@@ -199,18 +199,18 @@ export function FlashcardPage() {
             aria-label="다음 카드"
           >
             다음
-            <ChevronRightIcon className="h-5 w-5 ml-1" />
+            <ChevronRightIcon className="ml-1 h-5 w-5" />
           </Button>
         </div>
 
         {/* Completion message */}
         {currentIndex === allCards.length - 1 && (
-          <div className="rounded-xl bg-green-50 dark:bg-green-950/30 border border-green-200 dark:border-green-900 p-4 text-center">
-            <p className="text-green-700 dark:text-green-400 text-sm font-medium">
+          <div className="rounded-xl border border-green-200 bg-green-50 p-4 text-center dark:border-green-900 dark:bg-green-950/30">
+            <p className="text-sm font-medium text-green-700 dark:text-green-400">
               🎉 모든 카드를 학습했습니다!
             </p>
             <button
-              className="text-green-600 dark:text-green-500 text-xs mt-1 underline underline-offset-2"
+              className="mt-1 text-xs text-green-600 underline underline-offset-2 dark:text-green-500"
               onClick={() => {
                 setCurrentIndex(0)
                 setIsFlipped(false)

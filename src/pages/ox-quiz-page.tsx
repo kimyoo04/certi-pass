@@ -8,8 +8,8 @@ import { MobileLayout } from '@/components/mobile-layout'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Progress } from '@/components/ui/progress'
-import { useSwipe } from '@/hooks/use-swipe'
 import { useCachedFetch } from '@/hooks/use-cached-fetch'
+import { useSwipe } from '@/hooks/use-swipe'
 import { DATA_PATHS } from '@/constants'
 
 export function OXQuizPage() {
@@ -34,7 +34,8 @@ export function OXQuizPage() {
   const question = safeQuestions[safeIndex]
   const isAnswered = selectedAnswer !== null
   const isLast = safeIndex === safeQuestions.length - 1
-  const progressPercent = safeQuestions.length > 0 ? ((safeIndex + 1) / safeQuestions.length) * 100 : 0
+  const progressPercent =
+    safeQuestions.length > 0 ? ((safeIndex + 1) / safeQuestions.length) * 100 : 0
 
   const handleAnswer = (answer: boolean) => {
     if (isAnswered) return
@@ -89,7 +90,9 @@ export function OXQuizPage() {
       <MobileLayout title="OX 퀴즈" showBack>
         <div className="flex flex-col items-center justify-center py-20 text-center">
           <p className="text-muted-foreground mb-2 text-lg font-medium">OX 문제가 없습니다</p>
-          <p className="text-muted-foreground text-sm">이 과목에는 아직 OX 퀴즈가 준비되지 않았습니다.</p>
+          <p className="text-muted-foreground text-sm">
+            이 과목에는 아직 OX 퀴즈가 준비되지 않았습니다.
+          </p>
         </div>
       </MobileLayout>
     )
@@ -101,11 +104,11 @@ export function OXQuizPage() {
     const accuracy = total > 0 ? Math.round((stats.correct / total) * 100) : 0
     return (
       <MobileLayout title="OX 퀴즈" showBack>
-        <div className="flex flex-col items-center justify-center py-16 text-center space-y-6">
+        <div className="flex flex-col items-center justify-center space-y-6 py-16 text-center">
           <div className="text-6xl">{accuracy >= 80 ? '🎉' : accuracy >= 60 ? '👍' : '📚'}</div>
           <div>
             <p className="text-2xl font-bold">{accuracy}%</p>
-            <p className="text-muted-foreground text-sm mt-1">
+            <p className="text-muted-foreground mt-1 text-sm">
               {stats.correct}개 정답 / {stats.wrong}개 오답
             </p>
           </div>
@@ -125,18 +128,20 @@ export function OXQuizPage() {
         {/* 진행 + 통계 */}
         <div className="space-y-1.5">
           <Progress value={progressPercent} className="h-2" />
-          <div className="flex justify-between text-xs text-muted-foreground px-0.5">
-            <span className="text-green-600 font-medium">✓ {stats.correct}</span>
-            <span className="text-red-500 font-medium">✗ {stats.wrong}</span>
+          <div className="text-muted-foreground flex justify-between px-0.5 text-xs">
+            <span className="font-medium text-green-600">✓ {stats.correct}</span>
+            <span className="font-medium text-red-500">✗ {stats.wrong}</span>
           </div>
         </div>
 
         {/* 문제 */}
-        <div className="rounded-2xl border bg-card p-6 shadow-sm min-h-[200px] flex flex-col justify-center">
+        <div className="bg-card flex min-h-[200px] flex-col justify-center rounded-2xl border p-6 shadow-sm">
           <div className="mb-4">
-            <Badge variant="outline" className="text-[10px]">Q{safeIndex + 1}</Badge>
+            <Badge variant="outline" className="text-[10px]">
+              Q{safeIndex + 1}
+            </Badge>
           </div>
-          <p className="text-base leading-relaxed font-medium text-center">{question.statement}</p>
+          <p className="text-center text-base leading-relaxed font-medium">{question.statement}</p>
         </div>
 
         {/* OX 버튼 */}
@@ -148,11 +153,11 @@ export function OXQuizPage() {
             className={`rounded-2xl py-8 text-5xl font-bold transition-all active:scale-95 ${
               isAnswered
                 ? question.answer === true
-                  ? 'bg-green-100 text-green-600 dark:bg-green-900/40 ring-2 ring-green-500'
+                  ? 'bg-green-100 text-green-600 ring-2 ring-green-500 dark:bg-green-900/40'
                   : selectedAnswer === true
-                    ? 'bg-red-100 text-red-400 dark:bg-red-900/30 opacity-60'
+                    ? 'bg-red-100 text-red-400 opacity-60 dark:bg-red-900/30'
                     : 'bg-muted text-muted-foreground opacity-40'
-                : 'bg-blue-50 text-blue-500 dark:bg-blue-900/20 hover:bg-blue-100 dark:hover:bg-blue-900/30'
+                : 'bg-blue-50 text-blue-500 hover:bg-blue-100 dark:bg-blue-900/20 dark:hover:bg-blue-900/30'
             }`}
           >
             O
@@ -164,11 +169,11 @@ export function OXQuizPage() {
             className={`rounded-2xl py-8 text-5xl font-bold transition-all active:scale-95 ${
               isAnswered
                 ? question.answer === false
-                  ? 'bg-green-100 text-green-600 dark:bg-green-900/40 ring-2 ring-green-500'
+                  ? 'bg-green-100 text-green-600 ring-2 ring-green-500 dark:bg-green-900/40'
                   : selectedAnswer === false
-                    ? 'bg-red-100 text-red-400 dark:bg-red-900/30 opacity-60'
+                    ? 'bg-red-100 text-red-400 opacity-60 dark:bg-red-900/30'
                     : 'bg-muted text-muted-foreground opacity-40'
-                : 'bg-red-50 text-red-500 dark:bg-red-900/20 hover:bg-red-100 dark:hover:bg-red-900/30'
+                : 'bg-red-50 text-red-500 hover:bg-red-100 dark:bg-red-900/20 dark:hover:bg-red-900/30'
             }`}
           >
             X
@@ -178,16 +183,18 @@ export function OXQuizPage() {
         {/* 결과 + 해설 */}
         {isAnswered && (
           <div
-            className={`rounded-xl p-4 space-y-2 ${
+            className={`space-y-2 rounded-xl p-4 ${
               isCorrect
-                ? 'bg-green-50 dark:bg-green-950/30 border border-green-200 dark:border-green-800'
-                : 'bg-red-50 dark:bg-red-950/30 border border-red-200 dark:border-red-800'
+                ? 'border border-green-200 bg-green-50 dark:border-green-800 dark:bg-green-950/30'
+                : 'border border-red-200 bg-red-50 dark:border-red-800 dark:bg-red-950/30'
             }`}
           >
-            <p className={`text-sm font-bold ${isCorrect ? 'text-green-700 dark:text-green-400' : 'text-red-700 dark:text-red-400'}`}>
+            <p
+              className={`text-sm font-bold ${isCorrect ? 'text-green-700 dark:text-green-400' : 'text-red-700 dark:text-red-400'}`}
+            >
               {isCorrect ? '✓ 정답입니다!' : `✗ 오답! 정답은 ${question.answer ? 'O' : 'X'}입니다`}
             </p>
-            <p className="text-sm text-muted-foreground leading-relaxed">{question.explanation}</p>
+            <p className="text-muted-foreground text-sm leading-relaxed">{question.explanation}</p>
           </div>
         )}
 

@@ -17,9 +17,9 @@ import { useQuizStore } from '@/stores/use-quiz-store'
 import { useSM2Store } from '@/stores/use-sm2-store'
 import { useCachedFetch } from '@/hooks/use-cached-fetch'
 import { useSwipe } from '@/hooks/use-swipe'
+import { makeChapterKey, makeResultPath, makeTreePath } from '@/utils/path-utils'
 import { fisherYatesShuffle } from '@/utils/shuffle'
 import { sm2Sort } from '@/utils/sm2'
-import { makeChapterKey, makeResultPath, makeTreePath } from '@/utils/path-utils'
 import { DATA_PATHS, QUERY_MODES, QUESTION_TYPES } from '@/constants'
 
 export function QuizPage() {
@@ -48,13 +48,19 @@ export function QuizPage() {
     incrementActivity,
   } = useQuizStore()
 
-  const { sm2Data, sm2SortEnabled, updateQuestion: updateSM2Question, toggleSM2Sort } = useSM2Store()
+  const {
+    sm2Data,
+    sm2SortEnabled,
+    updateQuestion: updateSM2Question,
+    toggleSM2Sort,
+  } = useSM2Store()
 
   const getEditedQuestion = useQuestionEditStore((s) => s.getEditedQuestion)
   const [editTarget, setEditTarget] = useState<Question | null>(null)
   const { isBookmarked, toggleBookmark } = useBookmarkStore()
 
-  const chapterKey = examId && subjectId && chapterId ? makeChapterKey(examId, subjectId, chapterId) : ''
+  const chapterKey =
+    examId && subjectId && chapterId ? makeChapterKey(examId, subjectId, chapterId) : ''
 
   const {
     data: fetchedQuestions,
@@ -110,7 +116,16 @@ export function QuizPage() {
       updateSM2Question(question.id, correct ? 4 : 1)
       incrementActivity()
     },
-    [selectedAnswer, selectAnswer, mcQuestions, currentIndex, recordMcAnswer, chapterKey, updateSM2Question, incrementActivity],
+    [
+      selectedAnswer,
+      selectAnswer,
+      mcQuestions,
+      currentIndex,
+      recordMcAnswer,
+      chapterKey,
+      updateSM2Question,
+      incrementActivity,
+    ],
   )
 
   const safeIndex = Math.min(currentIndex, Math.max(mcQuestions.length - 1, 0))
@@ -337,7 +352,12 @@ export function QuizPage() {
               className="flex-1"
               onClick={() =>
                 navigate(
-                  makeResultPath(examId, subjectId, chapterId, wrongOnly ? QUERY_MODES.WRONG : QUERY_MODES.QUIZ),
+                  makeResultPath(
+                    examId,
+                    subjectId,
+                    chapterId,
+                    wrongOnly ? QUERY_MODES.WRONG : QUERY_MODES.QUIZ,
+                  ),
                 )
               }
             >
